@@ -49,6 +49,7 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
+      // 创建Vue实例，然后挂载
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance,
@@ -120,6 +121,7 @@ export function createComponent (
 
   // plain options object: turn it into a constructor
   if (isObject(Ctor)) {
+    // 创建子类构造器
     Ctor = baseCtor.extend(Ctor)
   }
 
@@ -190,9 +192,11 @@ export function createComponent (
   }
 
   // install component management hooks onto the placeholder node
+  // 安装组件钩子函数
   installComponentHooks(data)
 
   // return a placeholder vnode
+  // 实例化VNode
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
@@ -219,7 +223,7 @@ export function createComponentInstanceForVnode (
   refElm?: ?Node
 ): Component {
   const options: InternalComponentOptions = {
-    _isComponent: true,
+    _isComponent: true, // 代表是组件
     parent,
     _parentVnode: vnode,
     _parentElm: parentElm || null,
@@ -231,6 +235,7 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
+  // 调用构造器创建组件实例
   return new vnode.componentOptions.Ctor(options)
 }
 

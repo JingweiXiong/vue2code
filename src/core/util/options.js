@@ -131,6 +131,7 @@ strats.data = function (
 
 /**
  * Hooks and props are merged as arrays.
+ * 生命周期和props被合并成数组
  */
 function mergeHook (
   parentVal: ?Array<Function>,
@@ -378,6 +379,7 @@ export function mergeOptions (
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)
+  // 合并extends和mixins
   const extendsFrom = child.extends
   if (extendsFrom) {
     parent = mergeOptions(parent, extendsFrom, vm)
@@ -387,6 +389,7 @@ export function mergeOptions (
       parent = mergeOptions(parent, child.mixins[i], vm)
     }
   }
+  // 遍历键值合并
   const options = {}
   let key
   for (key in parent) {

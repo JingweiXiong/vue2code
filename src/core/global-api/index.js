@@ -18,7 +18,7 @@ import {
 } from '../util/index'
 
 export function initGlobalAPI (Vue: GlobalAPI) {
-  // config
+  // config：Vue.js的全局配置
   const configDef = {}
   configDef.get = () => config
   if (process.env.NODE_ENV !== 'production') {
@@ -30,7 +30,7 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   }
   Object.defineProperty(Vue, 'config', configDef)
 
-  // exposed util methods.
+  // exposed util methods：不要依赖util API，因为是不稳定的API，并不公开
   // NOTE: these are not considered part of the public API - avoid relying on
   // them unless you are aware of the risk.
   Vue.util = {
@@ -52,9 +52,9 @@ export function initGlobalAPI (Vue: GlobalAPI) {
   // this is used to identify the "base" constructor to extend all plain-object
   // components with in Weex's multi-instance scenarios.
   Vue.options._base = Vue
-
+  // 混入内置组件
   extend(Vue.options.components, builtInComponents)
-
+  // 设置全局API：use、mixin、extend
   initUse(Vue)
   initMixin(Vue)
   initExtend(Vue)

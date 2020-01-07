@@ -218,7 +218,7 @@ export function toArray (list: any, start?: number): Array<any> {
 }
 
 /**
- * Mix properties into target object.
+ * Mix properties into target object：往目标对象混入来源对象的所有属性
  */
 export function extend (to: Object, _from: ?Object): Object {
   for (const key in _from) {

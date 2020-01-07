@@ -58,6 +58,7 @@ export function renderMixin (Vue: Class<Component>) {
     return nextTick(fn, this)
   }
 
+  // 把实例的render函数渲染成VNode
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
     const { render, _parentVnode } = vm.$options
@@ -112,7 +113,7 @@ export function renderMixin (Vue: Class<Component>) {
       }
       vnode = createEmptyVNode()
     }
-    // set parent
+    // set parent：让_parentVnode指向当前VNode的parent
     vnode.parent = _parentVnode
     return vnode
   }

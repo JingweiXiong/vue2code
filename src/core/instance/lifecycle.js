@@ -48,6 +48,7 @@ export function initLifecycle (vm: Component) {
 }
 
 export function lifecycleMixin (Vue: Class<Component>) {
+  // 更新真实DOM
   Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {
     const vm: Component = this
     if (vm._isMounted) {
@@ -55,13 +56,14 @@ export function lifecycleMixin (Vue: Class<Component>) {
     }
     const prevEl = vm.$el
     const prevVnode = vm._vnode
+    // 深度遍历子组件过程中保证能传入当前子组件的父Vue实例
     const prevActiveInstance = activeInstance
     activeInstance = vm
     vm._vnode = vnode
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
     if (!prevVnode) {
-      // initial render
+      // initial render：首次渲染
       vm.$el = vm.__patch__(
         vm.$el, vnode, hydrating, false /* removeOnly */,
         vm.$options._parentElm,
@@ -141,6 +143,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
   }
 }
 
+// 挂载
 export function mountComponent (
   vm: Component,
   el: ?Element,
@@ -189,7 +192,9 @@ export function mountComponent (
       measure(`vue ${name} patch`, startTag, endTag)
     }
   } else {
+    // 更新组件的方法
     updateComponent = () => {
+      // _render创建VNode，_update把VNode渲染成真实的DOM
       vm._update(vm._render(), hydrating)
     }
   }
@@ -197,12 +202,14 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
+  // 实例化一个渲染Watcher，并设置vm的_watcher为这个watcher
   new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */)
   hydrating = false
 
   // manually mounted instance, call mounted on self
   // mounted is called for render-created child components in its inserted hook
   if (vm.$vnode == null) {
+    // 为null代表当前是根Vue的实例
     vm._isMounted = true
     callHook(vm, 'mounted')
   }
@@ -316,6 +323,7 @@ export function deactivateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+// 调用生命周期钩子
 export function callHook (vm: Component, hook: string) {
   // #7573 disable dep collection when invoking lifecycle hooks
   pushTarget()
