@@ -17,7 +17,7 @@ function Vue (options) {
 }
 
 // 分模块往Vue原型prototype添加属性和方法
-initMixin(Vue)
+initMixin(Vue) // 增加_init
 stateMixin(Vue)
 eventsMixin(Vue)
 lifecycleMixin(Vue)

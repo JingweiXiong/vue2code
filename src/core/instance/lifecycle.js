@@ -194,7 +194,7 @@ export function mountComponent (
   } else {
     // 更新组件的方法
     updateComponent = () => {
-      // _render创建VNode，_update把VNode渲染成真实的DOM
+      // _render方法创建VNode，_update方法把VNode渲染成真实DOM
       vm._update(vm._render(), hydrating)
     }
   }
@@ -202,7 +202,7 @@ export function mountComponent (
   // we set this to vm._watcher inside the watcher's constructor
   // since the watcher's initial patch may call $forceUpdate (e.g. inside child
   // component's mounted hook), which relies on vm._watcher being already defined
-  // 实例化一个渲染Watcher，并设置vm的_watcher为这个watcher
+  // 创建一个渲染Watcher
   new Watcher(vm, updateComponent, noop, null, true /* isRenderWatcher */)
   hydrating = false
 

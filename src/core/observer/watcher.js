@@ -49,6 +49,7 @@ export default class Watcher {
   ) {
     this.vm = vm
     if (isRenderWatcher) {
+      // 记录vm实例的渲染watcher
       vm._watcher = this
     }
     vm._watchers.push(this)
@@ -65,14 +66,15 @@ export default class Watcher {
     this.id = ++uid // uid for batching
     this.active = true
     this.dirty = this.lazy // for lazy watchers
-    this.deps = []
-    this.newDeps = []
+    this.deps = [] // 上一次添加的Dep实例数组
+    this.newDeps = [] // 新添加的Dep实例数组
     this.depIds = new Set()
     this.newDepIds = new Set()
     this.expression = process.env.NODE_ENV !== 'production'
       ? expOrFn.toString()
       : ''
     // parse expression for getter
+    // 记录getter方法
     if (typeof expOrFn === 'function') {
       this.getter = expOrFn
     } else {
@@ -87,6 +89,7 @@ export default class Watcher {
         )
       }
     }
+    // 非lazy时（即除了计算属性watcher以外）执行get方法
     this.value = this.lazy
       ? undefined
       : this.get()
@@ -94,9 +97,10 @@ export default class Watcher {
 
   /**
    * Evaluate the getter, and re-collect dependencies.
+   * 内部执行getter方法
    */
   get () {
-    pushTarget(this)
+    pushTarget(this) // 设置自己为Dep.target
     let value
     const vm = this.vm
     try {
@@ -110,10 +114,12 @@ export default class Watcher {
     } finally {
       // "touch" every property so they are all tracked as
       // dependencies for deep watching
+      // 深度监听：递归去访问value子数据，触发子项的getter
       if (this.deep) {
         traverse(value)
       }
-      popTarget()
+      popTarget() // 退出Dep.target
+      // 在每一次执行完getter添加完新的订阅后，都会移除掉旧的无用订阅
       this.cleanupDeps()
     }
     return value
@@ -121,12 +127,14 @@ export default class Watcher {
 
   /**
    * Add a dependency to this directive.
+   * 添加dep
    */
   addDep (dep: Dep) {
     const id = dep.id
     if (!this.newDepIds.has(id)) {
       this.newDepIds.add(id)
       this.newDeps.push(dep)
+      // 上一轮还没订阅过这个依赖的才进行订阅，不重复订阅
       if (!this.depIds.has(id)) {
         dep.addSub(this)
       }
@@ -135,8 +143,10 @@ export default class Watcher {
 
   /**
    * Clean up for dependency collection.
+   * 清理deps中的无用订阅(即newDepIds里面没有的)，并交换 newDeps 和 deps
    */
   cleanupDeps () {
+    // 清理
     let i = this.deps.length
     while (i--) {
       const dep = this.deps[i]
@@ -144,10 +154,12 @@ export default class Watcher {
         dep.removeSub(this)
       }
     }
+    // 把 newDepIds 和 depIds 交换，并清空newDepIds
     let tmp = this.depIds
     this.depIds = this.newDepIds
     this.newDepIds = tmp
     this.newDepIds.clear()
+    // 把 newDeps 和 deps 交换，并清空newDeps
     tmp = this.deps
     this.deps = this.newDeps
     this.newDeps = tmp
@@ -157,13 +169,14 @@ export default class Watcher {
   /**
    * Subscriber interface.
    * Will be called when a dependency changes.
+   * 更新方法
    */
   update () {
     /* istanbul ignore else */
     if (this.lazy) {
-      this.dirty = true
+      this.dirty = true // lazy类型被通知更新了，设置dirty为true，将重新求值
     } else if (this.sync) {
-      this.run()
+      this.run() // 同步：即时执行getter函数
     } else {
       queueWatcher(this)
     }
@@ -172,10 +185,12 @@ export default class Watcher {
   /**
    * Scheduler job interface.
    * Will be called by the scheduler.
+   * run方法供调度器调用，内部调用get()比较新旧值
    */
   run () {
     if (this.active) {
       const value = this.get()
+      // 以下情况都执行回调：值不相等、值是对象、深度监听
       if (
         value !== this.value ||
         // Deep watchers and watchers on Object/Arrays should fire even
@@ -203,6 +218,7 @@ export default class Watcher {
   /**
    * Evaluate the value of the watcher.
    * This only gets called for lazy watchers.
+   * 用于lazy watchers的计算当前值，并设置dirty为false
    */
   evaluate () {
     this.value = this.get()
@@ -211,6 +227,8 @@ export default class Watcher {
 
   /**
    * Depend on all deps collected by this watcher.
+   * 依赖Dep.target收集的所有dep实例
+   * 让自己收集的dep实例添加Dep.target到订阅中
    */
   depend () {
     let i = this.deps.length
@@ -221,6 +239,7 @@ export default class Watcher {
 
   /**
    * Remove self from all dependencies' subscriber list.
+   * 取消自身watcher的所有订阅
    */
   teardown () {
     if (this.active) {

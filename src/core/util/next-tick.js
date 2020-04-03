@@ -8,6 +8,7 @@ import { isIOS, isNative } from './env'
 const callbacks = []
 let pending = false
 
+// 刷新执行所有的回调
 function flushCallbacks () {
   pending = false
   const copies = callbacks.slice(0)
@@ -34,6 +35,7 @@ let useMacroTask = false
 // in IE. The only polyfill that consistently queues the callback after all DOM
 // events triggered in the same loop is by using MessageChannel.
 /* istanbul ignore if */
+// 宏任务执行函数：依次检查setImmediate、MessageChannel、setTimeout
 if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
   macroTimerFunc = () => {
     setImmediate(flushCallbacks)
@@ -58,6 +60,7 @@ if (typeof setImmediate !== 'undefined' && isNative(setImmediate)) {
 
 // Determine microtask defer implementation.
 /* istanbul ignore next, $flow-disable-line */
+// 微任务执行函数检查是否支持Promise，否则使用宏任务执行函数代替
 if (typeof Promise !== 'undefined' && isNative(Promise)) {
   const p = Promise.resolve()
   microTimerFunc = () => {
@@ -77,6 +80,7 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
 /**
  * Wrap a function so that if any code inside triggers state change,
  * the changes are queued using a (macro) task instead of a microtask.
+ * 提供一个参数可以强制走macroTimerFunc
  */
 export function withMacroTask (fn: Function): Function {
   return fn._withTask || (fn._withTask = function () {
@@ -87,6 +91,7 @@ export function withMacroTask (fn: Function): Function {
   })
 }
 
+// 把传入的cb压入callbacks数组，在下一个tick执行flushCallbacks
 export function nextTick (cb?: Function, ctx?: Object) {
   let _resolve
   callbacks.push(() => {
@@ -101,6 +106,7 @@ export function nextTick (cb?: Function, ctx?: Object) {
     }
   })
   if (!pending) {
+    // 如果是非pending状态就调用异步更新方法并锁上
     pending = true
     if (useMacroTask) {
       macroTimerFunc()

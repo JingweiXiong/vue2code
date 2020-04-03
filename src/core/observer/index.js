@@ -33,6 +33,8 @@ export function toggleObserving (value: boolean) {
  * object. Once attached, the observer converts the target
  * object's property keys into getter/setters that
  * collect dependencies and dispatch updates.
+ * Observer类：每个被观测对象被附加上观察者实例，observer会把目标对象的属性转换成
+ * 存储器属性getter\setter，进行依赖收集以及调度更新
  */
 export class Observer {
   value: any;
@@ -45,12 +47,15 @@ export class Observer {
     this.vmCount = 0
     def(value, '__ob__', this)
     if (Array.isArray(value)) {
+      // 处理数组值
+      // 增强value原型或value的功能
       const augment = hasProto
         ? protoAugment
         : copyAugment
       augment(value, arrayMethods, arrayKeys)
       this.observeArray(value)
     } else {
+      // 处理对象值
       this.walk(value)
     }
   }
@@ -59,6 +64,7 @@ export class Observer {
    * Walk through each property and convert them into
    * getter/setters. This method should only be called when
    * value type is Object.
+   * 遍历对象的属性转换成getter和setter
    */
   walk (obj: Object) {
     const keys = Object.keys(obj)
@@ -69,6 +75,7 @@ export class Observer {
 
   /**
    * Observe a list of Array items.
+   * 监测数组里的每一项
    */
   observeArray (items: Array<any>) {
     for (let i = 0, l = items.length; i < l; i++) {
@@ -82,6 +89,7 @@ export class Observer {
 /**
  * Augment an target Object or Array by intercepting
  * the prototype chain using __proto__
+ * 让target的原型指向src
  */
 function protoAugment (target, src: Object, keys: any) {
   /* eslint-disable no-proto */
@@ -92,6 +100,7 @@ function protoAugment (target, src: Object, keys: any) {
 /**
  * Augment an target Object or Array by defining
  * hidden properties.
+ * 给target增加src对应keys的隐藏属性
  */
 /* istanbul ignore next */
 function copyAugment (target: Object, src: Object, keys: Array<string>) {
@@ -105,13 +114,16 @@ function copyAugment (target: Object, src: Object, keys: Array<string>) {
  * Attempt to create an observer instance for a value,
  * returns the new observer if successfully observed,
  * or the existing observer if the value already has one.
+ * 给对象类型的值创建观察者实例，放到__ob__
+ * 返回新创建成功或已存在的observer实例
  */
 export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (!isObject(value) || value instanceof VNode) {
-    return
+    return // 非对象或VNode不用观察
   }
   let ob: Observer | void
   if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    // 已经有__ob__就直接返回
     ob = value.__ob__
   } else if (
     shouldObserve &&
@@ -125,11 +137,13 @@ export function observe (value: any, asRootData: ?boolean): Observer | void {
   if (asRootData && ob) {
     ob.vmCount++
   }
+  // 返回ob实例
   return ob
 }
 
 /**
  * Define a reactive property on an Object.
+ * 定义响应式属性
  */
 export function defineReactive (
   obj: Object,
@@ -138,6 +152,7 @@ export function defineReactive (
   customSetter?: ?Function,
   shallow?: boolean
 ) {
+  // 用于这个数据的依赖管理
   const dep = new Dep()
 
   const property = Object.getOwnPropertyDescriptor(obj, key)
@@ -152,14 +167,17 @@ export function defineReactive (
   }
   const setter = property && property.set
 
+  // 递归观察子对象，并返回Observer对象
   let childOb = !shallow && observe(val)
   Object.defineProperty(obj, key, {
     enumerable: true,
     configurable: true,
     get: function reactiveGetter () {
       const value = getter ? getter.call(obj) : val
+      // 当前有Watcher的话就收集依赖
       if (Dep.target) {
         dep.depend()
+        // 同时子数据也收集依赖
         if (childOb) {
           childOb.dep.depend()
           if (Array.isArray(value)) {
@@ -185,6 +203,7 @@ export function defineReactive (
         val = newVal
       }
       childOb = !shallow && observe(newVal)
+      // 通知订阅者
       dep.notify()
     }
   })
@@ -194,6 +213,8 @@ export function defineReactive (
  * Set a property on an object. Adds the new property and
  * triggers change notification if the property doesn't
  * already exist.
+ * 向响应式对象中添加一个响应式属性，如果是正常的新增属性的情况就立即调用notify
+ * 通知target的依赖进行更新
  */
 export function set (target: Array<any> | Object, key: any, val: any): any {
   if (process.env.NODE_ENV !== 'production' &&
@@ -201,6 +222,7 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
   ) {
     warn(`Cannot set reactive property on undefined, null, or primitive value: ${(target: any)}`)
   }
+  // 如果target是数组，调用重写的splice方法
   if (Array.isArray(target) && isValidArrayIndex(key)) {
     target.length = Math.max(target.length, key)
     target.splice(key, 1, val)
@@ -222,7 +244,9 @@ export function set (target: Array<any> | Object, key: any, val: any): any {
     target[key] = val
     return val
   }
+  // 定义响应式属性
   defineReactive(ob.value, key, val)
+  // 通知更新
   ob.dep.notify()
   return val
 }

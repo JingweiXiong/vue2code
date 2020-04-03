@@ -35,6 +35,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
+// 代理data属性到vm实例
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -45,13 +46,14 @@ export function proxy (target: Object, sourceKey: string, key: string) {
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
 
+// 初始化data/props/methods
 export function initState (vm: Component) {
   vm._watchers = []
   const opts = vm.$options
   if (opts.props) initProps(vm, opts.props)
   if (opts.methods) initMethods(vm, opts.methods)
   if (opts.data) {
-    initData(vm)
+    initData(vm) // 劫持data
   } else {
     observe(vm._data = {}, true /* asRootData */)
   }
@@ -109,6 +111,7 @@ function initProps (vm: Component, propsOptions: Object) {
   toggleObserving(true)
 }
 
+// 初始化data
 function initData (vm: Component) {
   let data = vm.$options.data
   data = vm._data = typeof data === 'function'
@@ -122,11 +125,12 @@ function initData (vm: Component) {
       vm
     )
   }
-  // proxy data on instance
+
   const keys = Object.keys(data)
   const props = vm.$options.props
   const methods = vm.$options.methods
   let i = keys.length
+  // 依次遍历，把data代理到vm实例，vm实例可直接访问data数据
   while (i--) {
     const key = keys[i]
     if (process.env.NODE_ENV !== 'production') {
@@ -147,7 +151,7 @@ function initData (vm: Component) {
       proxy(vm, `_data`, key)
     }
   }
-  // observe data
+  // 观测data
   observe(data, true /* asRootData */)
 }
 
@@ -164,8 +168,8 @@ export function getData (data: Function, vm: Component): any {
   }
 }
 
+// 初始化计算属性
 const computedWatcherOptions = { lazy: true }
-
 function initComputed (vm: Component, computed: Object) {
   // $flow-disable-line
   const watchers = vm._computedWatchers = Object.create(null)
@@ -206,7 +210,7 @@ function initComputed (vm: Component, computed: Object) {
     }
   }
 }
-
+// 定义一个计算属性
 export function defineComputed (
   target: any,
   key: string,
@@ -239,14 +243,18 @@ export function defineComputed (
   }
   Object.defineProperty(target, key, sharedPropertyDefinition)
 }
-
+// 创建计算属性的getter【需要缓存计算结果】
 function createComputedGetter (key) {
   return function computedGetter () {
     const watcher = this._computedWatchers && this._computedWatchers[key]
     if (watcher) {
+      // 当dirty为true的时候才重新求值，否则返回之前的值
       if (watcher.dirty) {
         watcher.evaluate()
       }
+      // 让自身watcher的deps中的dep实例添加Dep.target到它的订阅数组里面
+      // Dep.target就是获取这个计算属性的watcher，比如渲染watcher、watch api的watcher等，
+      // 这样在数据变化时也可以通知到这个Dep.target
       if (Dep.target) {
         watcher.depend()
       }
@@ -255,6 +263,7 @@ function createComputedGetter (key) {
   }
 }
 
+// 初始化方法
 function initMethods (vm: Component, methods: Object) {
   const props = vm.$options.props
   for (const key in methods) {
@@ -283,6 +292,7 @@ function initMethods (vm: Component, methods: Object) {
   }
 }
 
+// 初始化侦听属性
 function initWatch (vm: Component, watch: Object) {
   for (const key in watch) {
     const handler = watch[key]
@@ -295,7 +305,7 @@ function initWatch (vm: Component, watch: Object) {
     }
   }
 }
-
+// 创建侦听属性
 function createWatcher (
   vm: Component,
   expOrFn: string | Function,
@@ -353,6 +363,7 @@ export function stateMixin (Vue: Class<Component>) {
     if (options.immediate) {
       cb.call(vm, watcher.value)
     }
+    // 返回的函数用于取消监听
     return function unwatchFn () {
       watcher.teardown()
     }
