@@ -38,26 +38,26 @@ export default class VNode {
     componentOptions?: VNodeComponentOptions,
     asyncFactory?: Function
   ) {
-    this.tag = tag
-    this.data = data
-    this.children = children
-    this.text = text
-    this.elm = elm
+    this.tag = tag // 标签名
+    this.data = data // 当前节点对应的对象
+    this.children = children // 子节点数组
+    this.text = text // 文本
+    this.elm = elm // 当前虚拟节点对应的真实dom节点
     this.ns = undefined
-    this.context = context
-    this.fnContext = undefined
-    this.fnOptions = undefined
+    this.context = context // 当前组件节点对应的Vue实例
+    this.fnContext = undefined // 函数式组件对应的Vue实例
+    this.fnOptions = undefined // 函数式组件的option选项
     this.fnScopeId = undefined
-    this.key = data && data.key
-    this.componentOptions = componentOptions
-    this.componentInstance = undefined
-    this.parent = undefined
+    this.key = data && data.key // key属性是节点的标志，用于优化
+    this.componentOptions = componentOptions // 组件的option选项
+    this.componentInstance = undefined // 当前组件节点对应的Vue实例
+    this.parent = undefined // 组件在父组件渲染树中的占位符vnode
     this.raw = false
-    this.isStatic = false
-    this.isRootInsert = true
-    this.isComment = false
-    this.isCloned = false
-    this.isOnce = false
+    this.isStatic = false // 静态节点的标志
+    this.isRootInsert = true // 是否作为根节点插入
+    this.isComment = false // 注释节点的标志
+    this.isCloned = false // 克隆节点的标志
+    this.isOnce = false // 是否有v-once指令
     this.asyncFactory = asyncFactory
     this.asyncMeta = undefined
     this.isAsyncPlaceholder = false
@@ -70,6 +70,7 @@ export default class VNode {
   }
 }
 
+// 创建注释节点
 export const createEmptyVNode = (text: string = '') => {
   const node = new VNode()
   node.text = text
@@ -77,6 +78,7 @@ export const createEmptyVNode = (text: string = '') => {
   return node
 }
 
+// 创建文本节点
 export function createTextVNode (val: string | number) {
   return new VNode(undefined, undefined, undefined, String(val))
 }
@@ -85,6 +87,7 @@ export function createTextVNode (val: string | number) {
 // used for static nodes and slot nodes because they may be reused across
 // multiple renders, cloning them avoids errors when DOM manipulations rely
 // on their elm reference.
+// 克隆节点
 export function cloneVNode (vnode: VNode): VNode {
   const cloned = new VNode(
     vnode.tag,

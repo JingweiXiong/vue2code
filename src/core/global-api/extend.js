@@ -15,21 +15,25 @@ export function initExtend (Vue: GlobalAPI) {
 
   /**
    * Class inheritance
+   * 类继承：创建Vue的子类
    */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
     const Super = this
     const SuperId = Super.cid
     const cachedCtors = extendOptions._Ctor || (extendOptions._Ctor = {})
+    // 如果已有缓存则直接返回
     if (cachedCtors[SuperId]) {
       return cachedCtors[SuperId]
     }
 
+    // 获取name并校验
     const name = extendOptions.name || Super.options.name
     if (process.env.NODE_ENV !== 'production' && name) {
       validateComponentName(name)
     }
 
+    // vue子类继承于父类：设置其构造函数、合并配置
     const Sub = function VueComponent (options) {
       this._init(options)
     }
@@ -74,7 +78,7 @@ export function initExtend (Vue: GlobalAPI) {
     Sub.extendOptions = extendOptions
     Sub.sealedOptions = extend({}, Sub.options)
 
-    // cache constructor：缓存构造器，避免多次执行Vue.extend时对同一个子组件重复构造
+    // cache constructor：缓存构造器，避免同一个Vue构造函数多次对同一个组件重复构造
     cachedCtors[SuperId] = Sub
     return Sub
   }

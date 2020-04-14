@@ -29,11 +29,11 @@ export function initMixin (Vue: Class<Component>) {
     // a flag to avoid this being observed：防止被观察的标志
     vm._isVue = true
     // merge options：合并配置
+    // 优化组件的初始化速度，因为mergeOptions速度慢
     if (options && options._isComponent) {
       // optimize internal component instantiation
       // since dynamic options merging is pretty slow, and none of the
       // internal component options needs special treatment.
-      // 优化组件的初始化速度，因为mergeOptions速度慢
       initInternalComponent(vm, options)
     } else {
       vm.$options = mergeOptions(
@@ -75,6 +75,7 @@ export function initMixin (Vue: Class<Component>) {
   }
 }
 
+// 初始化组件的$options【合并子类构造器的options】
 export function initInternalComponent (vm: Component, options: InternalComponentOptions) {
   const opts = vm.$options = Object.create(vm.constructor.options)
   // doing this because it's faster than dynamic enumeration.

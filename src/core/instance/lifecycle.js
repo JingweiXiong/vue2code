@@ -18,9 +18,10 @@ import {
   validateProp
 } from '../util/index'
 
-export let activeInstance: any = null
+export let activeInstance: any = null // 保持当前上下文的Vue实例
 export let isUpdatingChildComponent: boolean = false
 
+// 初始化实例的父子关系等
 export function initLifecycle (vm: Component) {
   const options = vm.$options
 
@@ -59,11 +60,13 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // 深度遍历子组件过程中保证能传入当前子组件的父Vue实例
     const prevActiveInstance = activeInstance
     activeInstance = vm
-    vm._vnode = vnode
+    vm._vnode = vnode // 设置实例的自身虚拟节点_vnode
+
     // Vue.prototype.__patch__ is injected in entry points
     // based on the rendering backend used.
+    // 如果没有prevVnode就是首次渲染
     if (!prevVnode) {
-      // initial render：首次渲染
+      // initial render
       vm.$el = vm.__patch__(
         vm.$el, vnode, hydrating, false /* removeOnly */,
         vm.$options._parentElm,
@@ -73,7 +76,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
       // this prevents keeping a detached DOM tree in memory (#5851)
       vm.$options._parentElm = vm.$options._refElm = null
     } else {
-      // updates
+      // updates：更新
       vm.$el = vm.__patch__(prevVnode, vnode)
     }
     activeInstance = prevActiveInstance
@@ -92,6 +95,7 @@ export function lifecycleMixin (Vue: Class<Component>) {
     // updated in a parent's updated hook.
   }
 
+  // 手动触发vm实例的渲染watcher更新
   Vue.prototype.$forceUpdate = function () {
     const vm: Component = this
     if (vm._watcher) {

@@ -20,11 +20,12 @@ import {
   simpleNormalizeChildren
 } from './helpers/index'
 
-const SIMPLE_NORMALIZE = 1
-const ALWAYS_NORMALIZE = 2
+const SIMPLE_NORMALIZE = 1 // 编译模板的情况
+const ALWAYS_NORMALIZE = 2 // 用户调用的情况
 
 // wrapper function for providing a more flexible interface
 // without getting yelled at by flow
+// 规范化参数后再调用_createElement
 export function createElement (
   context: Component,
   tag: any,
@@ -33,18 +34,20 @@ export function createElement (
   normalizationType: any,
   alwaysNormalize: boolean
 ): VNode | Array<VNode> {
+  // 判断是否有传data【因为data是可选的，没传的话参数data就是子节点数组】
   if (Array.isArray(data) || isPrimitive(data)) {
     normalizationType = children
     children = data
     data = undefined
   }
+  // 判断格式化类型
   if (isTrue(alwaysNormalize)) {
     normalizationType = ALWAYS_NORMALIZE
   }
   return _createElement(context, tag, data, children, normalizationType)
 }
 
-// 创建VNode的方法
+// 最终创建VNode的方法
 export function _createElement (
   context: Component,
   tag?: string | Class<Component> | Function | Object,
@@ -52,6 +55,7 @@ export function _createElement (
   children?: any,
   normalizationType?: number
 ): VNode | Array<VNode> {
+  // 不支持响应式对象的data
   if (isDef(data) && isDef((data: any).__ob__)) {
     process.env.NODE_ENV !== 'production' && warn(
       `Avoid using observed data object as vnode data: ${JSON.stringify(data)}\n` +
@@ -61,14 +65,17 @@ export function _createElement (
     return createEmptyVNode()
   }
   // object syntax in v-bind
+  // 动态组件的逻辑
   if (isDef(data) && isDef(data.is)) {
     tag = data.is
   }
+  // 渲染为空的情况
   if (!tag) {
     // in case of component :is set to falsy value
     return createEmptyVNode()
   }
   // warn against non-primitive key
+  // 校验key
   if (process.env.NODE_ENV !== 'production' &&
     isDef(data) && isDef(data.key) && !isPrimitive(data.key)
   ) {
@@ -120,6 +127,7 @@ export function _createElement (
     }
   } else {
     // direct component options / constructor
+    // 传入组件选项或构造函数则创建组件
     vnode = createComponent(tag, data, context, children)
   }
   if (Array.isArray(vnode)) {

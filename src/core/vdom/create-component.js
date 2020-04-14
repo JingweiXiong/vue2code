@@ -33,7 +33,9 @@ import {
 } from 'weex/runtime/recycle-list/render-component-template'
 
 // inline hooks to be invoked on component VNodes during patch
+// patch组件过程中会被调用的钩子函数
 const componentVNodeHooks = {
+  // init：创建vm实例并挂载
   init (
     vnode: VNodeWithData,
     hydrating: boolean,
@@ -72,6 +74,7 @@ const componentVNodeHooks = {
     )
   },
 
+  // insert：调用组件的mounted钩子
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
@@ -106,6 +109,7 @@ const componentVNodeHooks = {
 
 const hooksToMerge = Object.keys(componentVNodeHooks)
 
+// 创建组件的VNode
 export function createComponent (
   Ctor: Class<Component> | Function | Object | void,
   data: ?VNodeData,
@@ -120,8 +124,8 @@ export function createComponent (
   const baseCtor = context.$options._base
 
   // plain options object: turn it into a constructor
+  // 创建子类构造器
   if (isObject(Ctor)) {
-    // 创建子类构造器
     Ctor = baseCtor.extend(Ctor)
   }
 
@@ -134,11 +138,12 @@ export function createComponent (
     return
   }
 
-  // async component
+  // async component：异步组件逻辑
   let asyncFactory
   if (isUndef(Ctor.cid)) {
     asyncFactory = Ctor
     Ctor = resolveAsyncComponent(asyncFactory, baseCtor, context)
+    // 先返回一个占位节点，等加载完了异步组件后再调用组件实例的forceUpdate触发组件更新
     if (Ctor === undefined) {
       // return a placeholder node for async component, which is rendered
       // as a comment node but preserves all the raw information for the node.
@@ -160,6 +165,7 @@ export function createComponent (
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events
+  // v-model逻辑
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
@@ -167,7 +173,7 @@ export function createComponent (
   // extract props
   const propsData = extractPropsFromVNodeData(data, Ctor, tag)
 
-  // functional component
+  // functional component：函数组件的逻辑
   if (isTrue(Ctor.options.functional)) {
     return createFunctionalComponent(Ctor, propsData, data, context, children)
   }
@@ -192,11 +198,11 @@ export function createComponent (
   }
 
   // install component management hooks onto the placeholder node
-  // 安装组件钩子函数
+  // 安装组件的钩子函数(init,prepatch,insert,destroy)
   installComponentHooks(data)
 
   // return a placeholder vnode
-  // 实例化VNode
+  // 实例化VNode【返回组件在父组件渲染树中的占位符vnode】
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,
@@ -216,6 +222,7 @@ export function createComponent (
   return vnode
 }
 
+// 创建VNode的组件实例
 export function createComponentInstanceForVnode (
   vnode: any, // we know it's MountedComponentVNode but flow doesn't
   parent: any, // activeInstance in lifecycle state
@@ -235,10 +242,11 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
-  // 调用构造器创建组件实例
+  // 调用组件构造函数创建组件实例，创建时内部会调用_init
   return new vnode.componentOptions.Ctor(options)
 }
 
+// 安装组件的hook
 function installComponentHooks (data: VNodeData) {
   const hooks = data.hook || (data.hook = {})
   for (let i = 0; i < hooksToMerge.length; i++) {

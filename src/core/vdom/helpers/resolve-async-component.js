@@ -37,6 +37,7 @@ export function createAsyncPlaceholder (
   return node
 }
 
+// 解析异步组件
 export function resolveAsyncComponent (
   factory: Function,
   baseCtor: Class<Component>,
@@ -61,14 +62,16 @@ export function resolveAsyncComponent (
     const contexts = factory.contexts = [context]
     let sync = true
 
+    // 触发组件更新
     const forceRender = () => {
       for (let i = 0, l = contexts.length; i < l; i++) {
         contexts[i].$forceUpdate()
       }
     }
 
+    // 加载成功：获取到组件构造器、触发更新
     const resolve = once((res: Object | Class<Component>) => {
-      // cache resolved
+      // cache resolved：缓存
       factory.resolved = ensureCtor(res, baseCtor)
       // invoke callbacks only if this is not a synchronous resolve
       // (async resolves are shimmed as synchronous during SSR)
@@ -90,6 +93,8 @@ export function resolveAsyncComponent (
 
     const res = factory(resolve, reject)
 
+    // 这种是在工厂函数中返回一个Promise的情况【配合webpack使用】
+    // 或者高级异步组件的工厂函数也是返回一个对象【设置component/loading/error/error/delay/timeout】
     if (isObject(res)) {
       if (typeof res.then === 'function') {
         // () => Promise

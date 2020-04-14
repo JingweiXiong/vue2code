@@ -131,7 +131,7 @@ strats.data = function (
 
 /**
  * Hooks and props are merged as arrays.
- * 生命周期和props被合并成数组
+ * 生命周期策略：合并成数组
  */
 function mergeHook (
   parentVal: ?Array<Function>,
@@ -156,6 +156,8 @@ LIFECYCLE_HOOKS.forEach(hook => {
  * When a vm is present (instance creation), we need to do
  * a three-way merge between constructor options, instance
  * options and parent options.
+ * 资源的合并策略(component/filter/directive)，
+ * 返回一个原型是parentVal和childVal的对象
  */
 function mergeAssets (
   parentVal: ?Object,
@@ -362,6 +364,7 @@ function assertObjectType (name: string, value: any, vm: ?Component) {
 /**
  * Merge two option objects into a new one.
  * Core utility used in both instantiation and inheritance.
+ * 合并配置
  */
 export function mergeOptions (
   parent: Object,
@@ -411,6 +414,8 @@ export function mergeOptions (
  * Resolve an asset.
  * This function is used because child instances need access
  * to assets defined in its ancestor chain.
+ * 找vm实例的资源：component/directive/filter
+ * 先找自身的，再找原型链上的
  */
 export function resolveAsset (
   options: Object,
@@ -429,7 +434,7 @@ export function resolveAsset (
   if (hasOwn(assets, camelizedId)) return assets[camelizedId]
   const PascalCaseId = capitalize(camelizedId)
   if (hasOwn(assets, PascalCaseId)) return assets[PascalCaseId]
-  // fallback to prototype chain
+  // fallback to prototype chain：找原型链的资源
   const res = assets[id] || assets[camelizedId] || assets[PascalCaseId]
   if (process.env.NODE_ENV !== 'production' && warnMissing && !res) {
     warn(

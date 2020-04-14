@@ -27,9 +27,11 @@ export function initRender (vm: Component) {
   // so that we get proper render context inside it.
   // args order: tag, data, children, normalizationType, alwaysNormalize
   // internal version is used by render functions compiled from templates
+  // 编译模板生成的render
   vm._c = (a, b, c, d) => createElement(vm, a, b, c, d, false)
   // normalization is always applied for the public version, used in
   // user-written render functions.
+  // 用户自己调用的render
   vm.$createElement = (a, b, c, d) => createElement(vm, a, b, c, d, true)
 
   // $attrs & $listeners are exposed for easier HOC creation.
@@ -61,6 +63,7 @@ export function renderMixin (Vue: Class<Component>) {
   // 把实例的render函数渲染成VNode
   Vue.prototype._render = function (): VNode {
     const vm: Component = this
+    // _parentVnode是组件在父组件渲染树中的占位符vnode
     const { render, _parentVnode } = vm.$options
 
     // reset _rendered flag on slots for duplicate slot check
@@ -77,8 +80,10 @@ export function renderMixin (Vue: Class<Component>) {
 
     // set parent vnode. this allows render functions to have access
     // to the data on the placeholder node.
+    // $vnode是组件在父组件渲染树中的占位符vnode
     vm.$vnode = _parentVnode
     // render self
+    // 渲染节点
     let vnode
     try {
       vnode = render.call(vm._renderProxy, vm.$createElement)
@@ -115,6 +120,7 @@ export function renderMixin (Vue: Class<Component>) {
     }
     // set parent：让_parentVnode指向当前VNode的parent
     vnode.parent = _parentVnode
+    // 返回render对应的vnode
     return vnode
   }
 }
