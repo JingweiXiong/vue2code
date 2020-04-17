@@ -62,6 +62,7 @@ const componentVNodeHooks = {
     }
   },
 
+  // 拿到新的vnode的组件配置以及组件实例去updateChildComponent
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     const child = vnode.componentInstance = oldVnode.componentInstance
@@ -95,6 +96,7 @@ const componentVNodeHooks = {
     }
   },
 
+  // 销毁节点
   destroy (vnode: MountedComponentVNode) {
     const { componentInstance } = vnode
     if (!componentInstance._isDestroyed) {

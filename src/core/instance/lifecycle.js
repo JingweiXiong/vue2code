@@ -220,6 +220,7 @@ export function mountComponent (
   return vm
 }
 
+// 更新子组件的属性
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,
