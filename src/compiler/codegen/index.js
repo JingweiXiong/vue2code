@@ -37,6 +37,7 @@ export type CodegenResult = {
   staticRenderFns: Array<string>
 };
 
+// 把AST树转换成可执行的代码
 export function generate (
   ast: ASTElement | void,
   options: CompilerOptions
@@ -49,6 +50,7 @@ export function generate (
   }
 }
 
+// 判断当前 AST 元素节点的属性执行不同的代码生成函数
 export function genElement (el: ASTElement, state: CodegenState): string {
   if (el.staticRoot && !el.staticProcessed) {
     return genStatic(el, state)

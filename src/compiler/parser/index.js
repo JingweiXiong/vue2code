@@ -43,6 +43,7 @@ let platformGetTagNamespace
 
 type Attr = { name: string; value: string };
 
+// 创建 AST 元素
 export function createASTElement (
   tag: string,
   attrs: Array<Attr>,
@@ -60,6 +61,7 @@ export function createASTElement (
 
 /**
  * Convert HTML string to AST.
+ * 把html转化成AST
  */
 export function parse (
   template: string,
@@ -67,6 +69,7 @@ export function parse (
 ): ASTElement | void {
   warn = options.warn || baseWarn
 
+  // 读取平台相关的方法和配置
   platformIsPreTag = options.isPreTag || no
   platformMustUseProp = options.mustUseProp || no
   platformGetTagNamespace = options.getTagNamespace || no
@@ -106,6 +109,7 @@ export function parse (
     }
   }
 
+  // 调用解析html的方法，传入配置和供调用的方法
   parseHTML(template, {
     warn,
     expectHTML: options.expectHTML,
@@ -114,6 +118,7 @@ export function parse (
     shouldDecodeNewlines: options.shouldDecodeNewlines,
     shouldDecodeNewlinesForHref: options.shouldDecodeNewlinesForHref,
     shouldKeepComment: options.comments,
+    // 处理开始标签
     start (tag, attrs, unary) {
       // check namespace.
       // inherit parent ns if there is one
@@ -125,11 +130,13 @@ export function parse (
         attrs = guardIESVGBug(attrs)
       }
 
+      // 创建 AST 元素
       let element: ASTElement = createASTElement(tag, attrs, currentParent)
       if (ns) {
         element.ns = ns
       }
 
+      // 处理 AST 元素
       if (isForbiddenTag(element) && !isServerRendering()) {
         element.forbidden = true
         process.env.NODE_ENV !== 'production' && warn(
@@ -156,6 +163,7 @@ export function parse (
       if (inVPre) {
         processRawAttrs(element)
       } else if (!element.processed) {
+        // 处理各种指令：v-for、v-if、once等
         // structural directives
         processFor(element)
         processIf(element)
@@ -181,7 +189,7 @@ export function parse (
         }
       }
 
-      // tree management
+      // tree management：AST 树管理
       if (!root) {
         root = element
         checkRootConstraints(root)
@@ -221,6 +229,7 @@ export function parse (
       }
     },
 
+    // 处理闭合标签
     end () {
       // remove trailing whitespace
       const element = stack[stack.length - 1]
@@ -234,6 +243,7 @@ export function parse (
       closeElement(element)
     },
 
+    // 处理文本内容
     chars (text: string) {
       if (!currentParent) {
         if (process.env.NODE_ENV !== 'production') {
@@ -279,6 +289,8 @@ export function parse (
         }
       }
     },
+
+    // 处理注释内容
     comment (text: string) {
       currentParent.children.push({
         type: 3,

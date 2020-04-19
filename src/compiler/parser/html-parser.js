@@ -13,6 +13,7 @@ import { makeMap, no } from 'shared/util'
 import { isNonPhrasingTag } from 'web/compiler/util'
 
 // Regular Expressions for parsing tags and attributes
+// 各个正则表达式s
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/
 // could use https://www.w3.org/TR/1999/REC-xml-names-19990114/#NT-QName
 // but for Vue templates we can enforce a simple charset
@@ -55,6 +56,7 @@ function decodeAttr (value, shouldDecodeNewlines) {
   return value.replace(re, match => decodingMap[match])
 }
 
+// 解析html
 export function parseHTML (html, options) {
   const stack = []
   const expectHTML = options.expectHTML
@@ -62,13 +64,14 @@ export function parseHTML (html, options) {
   const canBeLeftOpenTag = options.canBeLeftOpenTag || no
   let index = 0
   let last, lastTag
+  // 循环解析template
   while (html) {
     last = html
     // Make sure we're not in a plaintext content element like script/style
     if (!lastTag || !isPlainTextElement(lastTag)) {
       let textEnd = html.indexOf('<')
       if (textEnd === 0) {
-        // Comment:
+        // Comment: 匹配注释节点
         if (comment.test(html)) {
           const commentEnd = html.indexOf('-->')
 
@@ -91,14 +94,14 @@ export function parseHTML (html, options) {
           }
         }
 
-        // Doctype:
+        // Doctype: 匹配文档类型
         const doctypeMatch = html.match(doctype)
         if (doctypeMatch) {
           advance(doctypeMatch[0].length)
           continue
         }
 
-        // End tag:
+        // End tag: 匹配闭合标签
         const endTagMatch = html.match(endTag)
         if (endTagMatch) {
           const curIndex = index
@@ -107,7 +110,7 @@ export function parseHTML (html, options) {
           continue
         }
 
-        // Start tag:
+        // Start tag: 匹配开始标签
         const startTagMatch = parseStartTag()
         if (startTagMatch) {
           handleStartTag(startTagMatch)
@@ -119,6 +122,7 @@ export function parseHTML (html, options) {
       }
 
       let text, rest, next
+      // 文本
       if (textEnd >= 0) {
         rest = html.slice(textEnd)
         while (
@@ -137,6 +141,7 @@ export function parseHTML (html, options) {
         advance(textEnd)
       }
 
+      // 已解析完毕
       if (textEnd < 0) {
         text = html
         html = ''
@@ -186,6 +191,7 @@ export function parseHTML (html, options) {
     html = html.substring(n)
   }
 
+  // 解析开始标签的内容[标签名、属性]
   function parseStartTag () {
     const start = html.match(startTagOpen)
     if (start) {
@@ -209,6 +215,7 @@ export function parseHTML (html, options) {
     }
   }
 
+  // 处理开始标签
   function handleStartTag (match) {
     const tagName = match.tagName
     const unarySlash = match.unarySlash
@@ -222,8 +229,10 @@ export function parseHTML (html, options) {
       }
     }
 
+    // 是否是一元标签
     const unary = isUnaryTag(tagName) || !!unarySlash
 
+    // 对属性做处理
     const l = match.attrs.length
     const attrs = new Array(l)
     for (let i = 0; i < l; i++) {
@@ -244,6 +253,7 @@ export function parseHTML (html, options) {
       }
     }
 
+    // 非一元标签的push到stack
     if (!unary) {
       stack.push({ tag: tagName, lowerCasedTag: tagName.toLowerCase(), attrs: attrs })
       lastTag = tagName
@@ -254,6 +264,7 @@ export function parseHTML (html, options) {
     }
   }
 
+  // 解析结束标签
   function parseEndTag (tagName, start, end) {
     let pos, lowerCasedTagName
     if (start == null) start = index
