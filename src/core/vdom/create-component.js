@@ -65,11 +65,12 @@ const componentVNodeHooks = {
   // 拿到新的vnode的组件配置以及组件实例去updateChildComponent
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
+    // 获取子组件vm实例
     const child = vnode.componentInstance = oldVnode.componentInstance
     updateChildComponent(
       child,
-      options.propsData, // updated props
-      options.listeners, // updated listeners
+      options.propsData, // updated props 新的props
+      options.listeners, // updated listeners 新的事件监听
       vnode, // new parent vnode
       options.children // new children
     )
@@ -167,7 +168,7 @@ export function createComponent (
   resolveConstructorOptions(Ctor)
 
   // transform component v-model data into props & events
-  // v-model逻辑
+  // 处理组件的v-model：添加prop和监听事件
   if (isDef(data.model)) {
     transformModel(Ctor.options, data)
   }
@@ -182,9 +183,11 @@ export function createComponent (
 
   // extract listeners, since these needs to be treated as
   // child component listeners instead of DOM listeners
+  // 把自定义事件放到listeners上
   const listeners = data.on
   // replace with listeners with .native modifier
   // so it gets processed during parent component patch.
+  // data.on放原生的DOM事件
   data.on = data.nativeOn
 
   if (isTrue(Ctor.options.abstract)) {
@@ -259,6 +262,7 @@ function installComponentHooks (data: VNodeData) {
 
 // transform component v-model info (value and callback) into
 // prop and event handler respectively.
+// 给v-model添加prop和监听事件
 function transformModel (options, data: any) {
   const prop = (options.model && options.model.prop) || 'value'
   const event = (options.model && options.model.event) || 'input'

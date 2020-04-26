@@ -44,6 +44,7 @@ export function addDirective (
   el.plain = false
 }
 
+// 增加事件处理
 export function addHandler (
   el: ASTElement,
   name: string,
@@ -65,6 +66,7 @@ export function addHandler (
     )
   }
 
+  // 根据 modifier 修饰符对事件名 name 做标记处理
   // check capture modifier
   if (modifiers.capture) {
     delete modifiers.capture
@@ -92,6 +94,7 @@ export function addHandler (
     }
   }
 
+  // 区分是否是原生DOM事件
   let events
   if (modifiers.native) {
     delete modifiers.native
@@ -108,6 +111,7 @@ export function addHandler (
   }
 
   const handlers = events[name]
+  // 把回调函数的字符串保留到对应的事件中
   /* istanbul ignore if */
   if (Array.isArray(handlers)) {
     important ? handlers.unshift(newHandler) : handlers.push(newHandler)

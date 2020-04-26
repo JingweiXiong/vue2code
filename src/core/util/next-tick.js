@@ -81,6 +81,8 @@ if (typeof Promise !== 'undefined' && isNative(Promise)) {
  * Wrap a function so that if any code inside triggers state change,
  * the changes are queued using a (macro) task instead of a microtask.
  * 提供一个参数可以强制走macroTimerFunc
+ * 原因：由于micro task的执行优先级非常高，在某些场景下它甚至要比事件冒泡还要快，
+ * 就会导致一些诡异的问题，所以对于事件点击回调是使用withMacroTask的
  */
 export function withMacroTask (fn: Function): Function {
   return fn._withTask || (fn._withTask = function () {

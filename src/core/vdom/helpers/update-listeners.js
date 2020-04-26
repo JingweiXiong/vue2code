@@ -25,6 +25,7 @@ const normalizeEvent = cached((name: string): {
   }
 })
 
+// 把实际的事件回调放到invoker的fns上
 export function createFnInvoker (fns: Function | Array<Function>): Function {
   function invoker () {
     const fns = invoker.fns
@@ -42,6 +43,7 @@ export function createFnInvoker (fns: Function | Array<Function>): Function {
   return invoker
 }
 
+// 更新事件监听
 export function updateListeners (
   on: Object,
   oldOn: Object,
@@ -50,6 +52,7 @@ export function updateListeners (
   vm: Component
 ) {
   let name, def, cur, old, event
+  // 遍历on去添加事件监听
   for (name in on) {
     def = cur = on[name]
     old = oldOn[name]
@@ -65,15 +68,18 @@ export function updateListeners (
         vm
       )
     } else if (isUndef(old)) {
+      // 新增事件
       if (isUndef(cur.fns)) {
         cur = on[name] = createFnInvoker(cur)
       }
       add(event.name, cur, event.once, event.capture, event.passive, event.params)
     } else if (cur !== old) {
+      // 更新事件的回调
       old.fns = cur
       on[name] = old
     }
   }
+  // 遍历oldOn去移除事件监听
   for (name in oldOn) {
     if (isUndef(on[name])) {
       event = normalizeEvent(name)

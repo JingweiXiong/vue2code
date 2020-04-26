@@ -28,6 +28,7 @@ function normalizeEvents (on) {
 
 let target: any
 
+// 创建once事件【执行一次后remove掉】
 function createOnceHandler (handler, event, capture) {
   const _target = target // save current target element in closure
   return function onceHandler () {
@@ -38,6 +39,7 @@ function createOnceHandler (handler, event, capture) {
   }
 }
 
+// 添加事件
 function add (
   event: string,
   handler: Function,
@@ -45,6 +47,8 @@ function add (
   capture: boolean,
   passive: boolean
 ) {
+  // 强制在 DOM 事件的回调函数执行期间如果修改了数据，
+  // 那么这些数据更改推入的队列会被当做 macroTask 在 nextTick 后执行
   handler = withMacroTask(handler)
   if (once) handler = createOnceHandler(handler, event, capture)
   target.addEventListener(
@@ -56,6 +60,7 @@ function add (
   )
 }
 
+// 移除事件
 function remove (
   event: string,
   handler: Function,
@@ -69,11 +74,12 @@ function remove (
   )
 }
 
+// 更新DOM事件监听【初次及更新】
 function updateDOMListeners (oldVnode: VNodeWithData, vnode: VNodeWithData) {
   if (isUndef(oldVnode.data.on) && isUndef(vnode.data.on)) {
     return
   }
-  const on = vnode.data.on || {}
+  const on = vnode.data.on || {} // 获取事件对象
   const oldOn = oldVnode.data.on || {}
   target = vnode.elm
   normalizeEvents(on)

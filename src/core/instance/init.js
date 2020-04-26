@@ -87,6 +87,7 @@ export function initInternalComponent (vm: Component, options: InternalComponent
 
   const vnodeComponentOptions = parentVnode.componentOptions
   opts.propsData = vnodeComponentOptions.propsData
+  // 自定义事件
   opts._parentListeners = vnodeComponentOptions.listeners
   opts._renderChildren = vnodeComponentOptions.children
   opts._componentTag = vnodeComponentOptions.tag

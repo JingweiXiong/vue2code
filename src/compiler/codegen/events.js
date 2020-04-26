@@ -48,6 +48,7 @@ const modifierCode: { [key: string]: string } = {
   right: genGuard(`'button' in $event && $event.button !== 2`)
 }
 
+// 处理事件
 export function genHandlers (
   events: ASTElementHandlers,
   isNative: boolean,
@@ -78,6 +79,7 @@ function genWeexHandler (params: Array<any>, handlerCode: string) {
     '}'
 }
 
+// 增加事件处理
 function genHandler (
   name: string,
   handler: ASTElementHandler | Array<ASTElementHandler>
@@ -90,10 +92,12 @@ function genHandler (
     return `[${handler.map(handler => genHandler(name, handler)).join(',')}]`
   }
 
+  // 判断是否是调用路径或函数表达式的方式
   const isMethodPath = simplePathRE.test(handler.value)
   const isFunctionExpression = fnExpRE.test(handler.value)
 
   if (!handler.modifiers) {
+    // 无修饰符的情况
     if (isMethodPath || isFunctionExpression) {
       return handler.value
     }
@@ -103,6 +107,7 @@ function genHandler (
     }
     return `function($event){${handler.value}}` // inline statement
   } else {
+    // 有函数修饰符的情况
     let code = ''
     let genModifierCode = ''
     const keys = []

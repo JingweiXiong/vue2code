@@ -324,6 +324,7 @@ function processRawAttrs (el) {
   }
 }
 
+// 处理元素
 export function processElement (element: ASTElement, options: CompilerOptions) {
   processKey(element)
 
@@ -522,16 +523,18 @@ function processComponent (el) {
   }
 }
 
+// 处理属性
 function processAttrs (el) {
   const list = el.attrsList
   let i, l, name, rawName, value, modifiers, isProp
   for (i = 0, l = list.length; i < l; i++) {
     name = rawName = list[i].name
     value = list[i].value
+    // 判断是指令
     if (dirRE.test(name)) {
       // mark element as dynamic
       el.hasBindings = true
-      // modifiers
+      // modifiers 解析修饰符
       modifiers = parseModifiers(name)
       if (modifiers) {
         name = name.replace(modifierRE, '')
@@ -565,6 +568,7 @@ function processAttrs (el) {
           addAttr(el, name, value)
         }
       } else if (onRE.test(name)) { // v-on
+        // 处理事件
         name = name.replace(onRE, '')
         addHandler(el, name, value, modifiers, false, warn)
       } else { // normal directives
@@ -616,6 +620,7 @@ function checkInFor (el: ASTElement): boolean {
   return false
 }
 
+// 解析修饰符
 function parseModifiers (name: string): Object | void {
   const match = name.match(modifierRE)
   if (match) {

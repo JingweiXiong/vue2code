@@ -10,7 +10,7 @@ import {
 import { updateListeners } from '../vdom/helpers/index'
 
 export function initEvents (vm: Component) {
-  vm._events = Object.create(null)
+  vm._events = Object.create(null) // 用于存放事件
   vm._hasHookEvent = false
   // init parent attached events
   const listeners = vm.$options._parentListeners
@@ -21,6 +21,7 @@ export function initEvents (vm: Component) {
 
 let target: any
 
+// 增加自定义事件
 function add (event, fn, once) {
   if (once) {
     target.$once(event, fn)
@@ -28,7 +29,7 @@ function add (event, fn, once) {
     target.$on(event, fn)
   }
 }
-
+// 取消自定义事件
 function remove (event, fn) {
   target.$off(event, fn)
 }
@@ -45,6 +46,7 @@ export function updateComponentListeners (
 
 export function eventsMixin (Vue: Class<Component>) {
   const hookRE = /^hook:/
+  // 监听事件
   Vue.prototype.$on = function (event: string | Array<string>, fn: Function): Component {
     const vm: Component = this
     if (Array.isArray(event)) {
@@ -62,6 +64,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 一次性监听
   Vue.prototype.$once = function (event: string, fn: Function): Component {
     const vm: Component = this
     function on () {
@@ -73,6 +76,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 取消监听
   Vue.prototype.$off = function (event?: string | Array<string>, fn?: Function): Component {
     const vm: Component = this
     // all
@@ -111,6 +115,7 @@ export function eventsMixin (Vue: Class<Component>) {
     return vm
   }
 
+  // 触发事件
   Vue.prototype.$emit = function (event: string): Component {
     const vm: Component = this
     if (process.env.NODE_ENV !== 'production') {

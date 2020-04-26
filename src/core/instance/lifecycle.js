@@ -220,7 +220,7 @@ export function mountComponent (
   return vm
 }
 
-// 更新子组件的属性
+// 更新子组件的属性【props等】
 export function updateChildComponent (
   vm: Component,
   propsData: ?Object,
@@ -255,7 +255,7 @@ export function updateChildComponent (
   vm.$attrs = parentVnode.data.attrs || emptyObject
   vm.$listeners = listeners || emptyObject
 
-  // update props
+  // update props 更新props
   if (propsData && vm.$options.props) {
     toggleObserving(false)
     const props = vm._props
@@ -270,7 +270,7 @@ export function updateChildComponent (
     vm.$options.propsData = propsData
   }
 
-  // update listeners
+  // update listeners 更新事件监听器
   listeners = listeners || emptyObject
   const oldListeners = vm.$options._parentListeners
   vm.$options._parentListeners = listeners

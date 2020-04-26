@@ -11,6 +11,7 @@ let warn
 export const RANGE_TOKEN = '__r'
 export const CHECKBOX_RADIO_TOKEN = '__c'
 
+// 生成v-model指令的代码
 export default function model (
   el: ASTElement,
   dir: ASTDirective,
@@ -44,8 +45,10 @@ export default function model (
   } else if (tag === 'input' && type === 'radio') {
     genRadioModel(el, value, modifiers)
   } else if (tag === 'input' || tag === 'textarea') {
+    // 默认input的model
     genDefaultModel(el, value, modifiers)
   } else if (!config.isReservedTag(tag)) {
+    // 生成组件上的v-model
     genComponentModel(el, value, modifiers)
     // component v-model doesn't need extra runtime
     return false
@@ -151,6 +154,7 @@ function genDefaultModel (
       ? RANGE_TOKEN
       : 'input'
 
+  // value的表达式
   let valueExpression = '$event.target.value'
   if (trim) {
     valueExpression = `$event.target.value.trim()`
@@ -159,11 +163,12 @@ function genDefaultModel (
     valueExpression = `_n(${valueExpression})`
   }
 
+  // 生成要执行的代码
   let code = genAssignmentCode(value, valueExpression)
   if (needCompositionGuard) {
     code = `if($event.target.composing)return;${code}`
   }
-
+  // 添加prop和绑定事件
   addProp(el, 'value', `(${value})`)
   addHandler(el, event, code, null, true)
   if (trim || number) {

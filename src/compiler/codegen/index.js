@@ -9,6 +9,7 @@ type TransformFunction = (el: ASTElement, code: string) => string;
 type DataGenFunction = (el: ASTElement) => string;
 type DirectiveFunction = (el: ASTElement, dir: ASTDirective, warn: Function) => boolean;
 
+// CodegenState类
 export class CodegenState {
   options: CompilerOptions;
   warn: Function;
@@ -24,6 +25,7 @@ export class CodegenState {
     this.warn = options.warn || baseWarn
     this.transforms = pluckModuleFunction(options.modules, 'transformCode')
     this.dataGenFns = pluckModuleFunction(options.modules, 'genData')
+    // 指令
     this.directives = extend(extend({}, baseDirectives), options.directives)
     const isReservedTag = options.isReservedTag || no
     this.maybeComponent = (el: ASTElement) => !isReservedTag(el.tag)
@@ -42,6 +44,7 @@ export function generate (
   ast: ASTElement | void,
   options: CompilerOptions
 ): CodegenResult {
+  // 实例化CodegenState
   const state = new CodegenState(options)
   const code = ast ? genElement(ast, state) : '_c("div")'
   return {
@@ -198,11 +201,13 @@ export function genFor (
     '})'
 }
 
+// 根据 AST 元素节点的属性构造出一个 data 对象字符串
 export function genData (el: ASTElement, state: CodegenState): string {
   let data = '{'
 
   // directives first.
   // directives may mutate the el's other properties before they are generated.
+  // 指令处理
   const dirs = genDirectives(el, state)
   if (dirs) data += dirs + ','
 
@@ -237,7 +242,7 @@ export function genData (el: ASTElement, state: CodegenState): string {
   if (el.props) {
     data += `domProps:{${genProps(el.props)}},`
   }
-  // event handlers
+  // event handlers：事件处理
   if (el.events) {
     data += `${genHandlers(el.events, false, state.warn)},`
   }
@@ -282,15 +287,18 @@ export function genData (el: ASTElement, state: CodegenState): string {
   return data
 }
 
+// 生成指令
 function genDirectives (el: ASTElement, state: CodegenState): string | void {
   const dirs = el.directives
   if (!dirs) return
   let res = 'directives:['
   let hasRuntime = false
   let i, l, dir, needRuntime
+  // 遍历
   for (i = 0, l = dirs.length; i < l; i++) {
     dir = dirs[i]
     needRuntime = true
+    // 获取每一个指令对应的方法
     const gen: DirectiveFunction = state.directives[dir.name]
     if (gen) {
       // compile-time directive that manipulates AST.

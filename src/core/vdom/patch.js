@@ -69,7 +69,8 @@ function createKeyToOldIdx (children, beginIdx, endIdx) {
   return map
 }
 
-// 根据不同平台返回对应的patch
+// 根据不同平台返回对应的patch【不同平台有不同的操作方法及模块】
+// 如web有attrs/class/dom-props/events等等不同模块，这些模块根据需要有不同的钩子回调
 export function createPatchFunction (backend) {
   let i, j
   const cbs = {}
@@ -321,7 +322,7 @@ export function createPatchFunction (backend) {
 
   function invokeCreateHooks (vnode, insertedVnodeQueue) {
     for (let i = 0; i < cbs.create.length; ++i) {
-      cbs.create[i](emptyNode, vnode)
+      cbs.create[i](emptyNode, vnode) // 调用模块的create钩子
     }
     i = vnode.data.hook // Reuse variable
     if (isDef(i)) {
