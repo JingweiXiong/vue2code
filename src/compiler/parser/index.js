@@ -213,6 +213,7 @@ export function parse (
         if (element.elseif || element.else) {
           processIfConditions(element, currentParent)
         } else if (element.slotScope) { // scoped slot
+          // 对于作用域插槽，不会作为children放到AST树中，而是放到scopedSlots中
           currentParent.plain = false
           const name = element.slotTarget || '"default"'
           ;(currentParent.scopedSlots || (currentParent.scopedSlots = {}))[name] = element
@@ -464,8 +465,10 @@ function processOnce (el) {
   }
 }
 
+// 处理slot元素
 function processSlot (el) {
   if (el.tag === 'slot') {
+    // 添加slotName属性
     el.slotName = getBindingAttr(el, 'name')
     if (process.env.NODE_ENV !== 'production' && el.key) {
       warn(
@@ -475,6 +478,7 @@ function processSlot (el) {
       )
     }
   } else {
+    // slot-scope的处理，增加slotScope属性
     let slotScope
     if (el.tag === 'template') {
       slotScope = getAndRemoveAttr(el, 'scope')
@@ -501,6 +505,7 @@ function processSlot (el) {
       }
       el.slotScope = slotScope
     }
+    // 给el增加slotTarget
     const slotTarget = getBindingAttr(el, 'slot')
     if (slotTarget) {
       el.slotTarget = slotTarget === '""' ? '"default"' : slotTarget

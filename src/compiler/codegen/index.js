@@ -251,10 +251,12 @@ export function genData (el: ASTElement, state: CodegenState): string {
   }
   // slot target
   // only for non-scoped slots
+  // 处理普通插槽：增加slot属性
   if (el.slotTarget && !el.slotScope) {
     data += `slot:${el.slotTarget},`
   }
   // scoped slots
+  // 处理作用域插槽
   if (el.scopedSlots) {
     data += `${genScopedSlots(el.scopedSlots, state)},`
   }
@@ -338,6 +340,7 @@ function genInlineTemplate (el: ASTElement, state: CodegenState): ?string {
   }
 }
 
+// 处理作用域插槽
 function genScopedSlots (
   slots: { [key: string]: ASTElement },
   state: CodegenState
@@ -349,6 +352,7 @@ function genScopedSlots (
   }])`
 }
 
+// 作用域插槽：key是插槽名、fn是生成的函数代码，参数是slotScope，用于给子组件调用生成vnode的
 function genScopedSlot (
   key: string,
   el: ASTElement,
@@ -463,10 +467,13 @@ export function genComment (comment: ASTText): string {
   return `_e(${JSON.stringify(comment.text)})`
 }
 
+// 处理slot元素
 function genSlot (el: ASTElement, state: CodegenState): string {
   const slotName = el.slotName || '"default"'
-  const children = genChildren(el, state)
+  const children = genChildren(el, state) // 插槽的默认内容
+  // 返回renderSlot方法，传插槽名、后备内容、props
   let res = `_t(${slotName}${children ? `,${children}` : ''}`
+  // 解析属性
   const attrs = el.attrs && `{${el.attrs.map(a => `${camelize(a.name)}:${a.value}`).join(',')}}`
   const bind = el.attrsMap['v-bind']
   if ((attrs || bind) && !children) {

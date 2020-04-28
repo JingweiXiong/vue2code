@@ -4,6 +4,7 @@ import type VNode from 'core/vdom/vnode'
 
 /**
  * Runtime helper for resolving raw children VNodes into a slot object.
+ * 解析children，返回所有插槽的内容
  */
 export function resolveSlots (
   children: ?Array<VNode>,
@@ -13,6 +14,7 @@ export function resolveSlots (
   if (!children) {
     return slots
   }
+  // 遍历children，读取child的data的slot属性
   for (let i = 0, l = children.length; i < l; i++) {
     const child = children[i]
     const data = child.data
@@ -26,6 +28,7 @@ export function resolveSlots (
       data && data.slot != null
     ) {
       const name = data.slot
+      // 放到slots对象
       const slot = (slots[name] || (slots[name] = []))
       if (child.tag === 'template') {
         slot.push.apply(slot, child.children || [])
@@ -49,6 +52,7 @@ function isWhitespace (node: VNode): boolean {
   return (node.isComment && !node.asyncFactory) || node.text === ' '
 }
 
+// 解析作用域插槽：把数组转化成对象返回
 export function resolveScopedSlots (
   fns: ScopedSlotsData, // see flow/vnode
   res?: Object

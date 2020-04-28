@@ -4,6 +4,7 @@ import { extend, warn, isObject } from 'core/util/index'
 
 /**
  * Runtime helper for rendering <slot>
+ * 获取插槽对应的节点【如果是作用域插槽则通过执行对应的渲染函数来生成】
  */
 export function renderSlot (
   name: string,
@@ -11,6 +12,7 @@ export function renderSlot (
   props: ?Object,
   bindObject: ?Object
 ): ?Array<VNode> {
+  // 获取作用域插槽对应的执行函数【this.$scopedSlots是从父组件传过来的】
   const scopedSlotFn = this.$scopedSlots[name]
   let nodes
   if (scopedSlotFn) { // scoped slot
@@ -26,6 +28,7 @@ export function renderSlot (
     }
     nodes = scopedSlotFn(props) || fallback
   } else {
+    // 获取指定name的插槽的节点
     const slotNodes = this.$slots[name]
     // warn duplicate slot usage
     if (slotNodes) {
