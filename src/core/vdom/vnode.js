@@ -50,7 +50,7 @@ export default class VNode {
     this.fnScopeId = undefined
     this.key = data && data.key // key属性是节点的标志，用于优化
     this.componentOptions = componentOptions // 组件的option选项
-    this.componentInstance = undefined // 当前组件节点对应的Vue实例
+    this.componentInstance = undefined // 当前节点对应的组件实例
     this.parent = undefined // 组件在父组件渲染树中的占位符vnode
     this.raw = false
     this.isStatic = false // 静态节点的标志

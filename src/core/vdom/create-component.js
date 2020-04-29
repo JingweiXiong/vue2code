@@ -35,7 +35,7 @@ import {
 // inline hooks to be invoked on component VNodes during patch
 // patch组件过程中会被调用的钩子函数
 const componentVNodeHooks = {
-  // init：创建vm实例并挂载
+  // 创建组件实例并挂载
   init (
     vnode: VNodeWithData,
     hydrating: boolean,
@@ -51,7 +51,7 @@ const componentVNodeHooks = {
       const mountedNode: any = vnode // work around flow
       componentVNodeHooks.prepatch(mountedNode, mountedNode)
     } else {
-      // 创建Vue实例，然后挂载
+      // 创建vnode的组件实例，并挂载
       const child = vnode.componentInstance = createComponentInstanceForVnode(
         vnode,
         activeInstance,
@@ -62,7 +62,7 @@ const componentVNodeHooks = {
     }
   },
 
-  // 拿到新的vnode的组件配置以及组件实例去updateChildComponent
+  // 拿新vnode的配置调用updateChildComponent更新子组件的数据
   prepatch (oldVnode: MountedComponentVNode, vnode: MountedComponentVNode) {
     const options = vnode.componentOptions
     // 获取子组件vm实例
@@ -76,13 +76,14 @@ const componentVNodeHooks = {
     )
   },
 
-  // insert：调用组件的mounted钩子
+  // 调用组件实例的mounted钩子，或调用keep-alive组件的activated钩子
   insert (vnode: MountedComponentVNode) {
     const { context, componentInstance } = vnode
     if (!componentInstance._isMounted) {
       componentInstance._isMounted = true
       callHook(componentInstance, 'mounted')
     }
+    // keep-alive的激活
     if (vnode.data.keepAlive) {
       if (context._isMounted) {
         // vue-router#1212
@@ -90,6 +91,7 @@ const componentVNodeHooks = {
         // change, so directly walking the tree here may call activated hooks
         // on incorrect children. Instead we push them into a queue which will
         // be processed after the whole patch process ended.
+        // 未挂载的就先存入队列，在nextTick后执行钩子
         queueActivatedComponent(componentInstance)
       } else {
         activateChildComponent(componentInstance, true /* direct */)
@@ -97,7 +99,7 @@ const componentVNodeHooks = {
     }
   },
 
-  // 销毁节点
+  // 调用$destroy方法销毁节点，或调用keep-alive组件的deactivated钩子
   destroy (vnode: MountedComponentVNode) {
     const { componentInstance } = vnode
     if (!componentInstance._isDestroyed) {
@@ -247,7 +249,7 @@ export function createComponentInstanceForVnode (
     options.render = inlineTemplate.render
     options.staticRenderFns = inlineTemplate.staticRenderFns
   }
-  // 调用组件构造函数创建组件实例，创建时内部会调用_init
+  // 调用组件构造器创建组件实例，创建时内部会调用_init
   return new vnode.componentOptions.Ctor(options)
 }
 

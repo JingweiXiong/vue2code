@@ -217,7 +217,7 @@ export function createPatchFunction (backend) {
     }
   }
 
-  // 创建组件的元素，传入vnode、插入节点队列、父节点、参考节点
+  // 创建组件vnode的真实元素，传入vnode、插入节点队列、父节点、参考节点
   // 创建成功就返回true
   function createComponent (vnode, insertedVnodeQueue, parentElm, refElm) {
     let i = vnode.data
@@ -234,6 +234,7 @@ export function createPatchFunction (backend) {
       // 调用init钩子之后，如果vnode是一个子组件就会成功设置了vnode的组件实例componentInstance
       if (isDef(vnode.componentInstance)) {
         initComponent(vnode, insertedVnodeQueue)
+        // 激活组件
         if (isTrue(isReactivated)) {
           reactivateComponent(vnode, insertedVnodeQueue, parentElm, refElm)
         }
@@ -738,7 +739,7 @@ export function createPatchFunction (backend) {
 
   // 主要的参数：旧的VNode节点（或者DOM节点）、新的VNode节点、父元素
   return function patch (oldVnode, vnode, hydrating, removeOnly, parentElm, refElm) {
-    // vnode不存在，oldVnode存在，调用destroy销毁旧节点
+    // vnode不存在，oldVnode存在，调用组件vnode的destroy钩子销毁旧节点
     if (isUndef(vnode)) {
       if (isDef(oldVnode)) invokeDestroyHook(oldVnode)
       return
@@ -843,7 +844,7 @@ export function createPatchFunction (backend) {
       }
     }
 
-    // 调用insert钩子
+    // 调用组件vnode的insert钩子
     invokeInsertHook(vnode, insertedVnodeQueue, isInitialPatch)
     // 返回vnode的真实元素
     return vnode.elm

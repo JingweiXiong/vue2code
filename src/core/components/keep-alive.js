@@ -52,7 +52,7 @@ const patternTypes: Array<Function> = [String, RegExp, Array]
 
 export default {
   name: 'keep-alive',
-  abstract: true,
+  abstract: true, // 代表是抽象组件
 
   props: {
     include: patternTypes,
@@ -61,6 +61,7 @@ export default {
   },
 
   created () {
+    // 用于缓存已创建过的vnode
     this.cache = Object.create(null)
     this.keys = []
   },
@@ -82,10 +83,13 @@ export default {
 
   render () {
     const slot = this.$slots.default
+    // 获取第一个子元素的vnode
     const vnode: VNode = getFirstComponentChild(slot)
     const componentOptions: ?VNodeComponentOptions = vnode && vnode.componentOptions
     if (componentOptions) {
       // check pattern
+      // 如果定义了include，且不包含
+      // 或者定义了exclude，且包含，就直接返回vnode
       const name: ?string = getComponentName(componentOptions)
       const { include, exclude } = this
       if (
@@ -104,14 +108,16 @@ export default {
         ? componentOptions.Ctor.cid + (componentOptions.tag ? `::${componentOptions.tag}` : '')
         : vnode.key
       if (cache[key]) {
+        // 从缓存中拿vnode的组件实例
         vnode.componentInstance = cache[key].componentInstance
         // make current key freshest
         remove(keys, key)
         keys.push(key)
       } else {
+        // 把vnode缓存起来
         cache[key] = vnode
         keys.push(key)
-        // prune oldest entry
+        // prune oldest entry：删除最旧的缓存
         if (this.max && keys.length > parseInt(this.max)) {
           pruneCacheEntry(cache, keys[0], keys, this._vnode)
         }

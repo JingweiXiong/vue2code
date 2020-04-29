@@ -277,6 +277,7 @@ export function updateChildComponent (
   updateComponentListeners(vm, listeners, oldListeners)
 
   // resolve slots + force update if has children
+  // 重新解析slot并强制更新
   if (hasChildren) {
     vm.$slots = resolveSlots(renderChildren, parentVnode.context)
     vm.$forceUpdate()
@@ -294,6 +295,7 @@ function isInInactiveTree (vm) {
   return false
 }
 
+// 调用activated生命周期，并且递归去执行它的所有子组件的activated
 export function activateChildComponent (vm: Component, direct?: boolean) {
   if (direct) {
     vm._directInactive = false
@@ -312,6 +314,7 @@ export function activateChildComponent (vm: Component, direct?: boolean) {
   }
 }
 
+// 执行组件的deactivated钩子，并且递归调用子组件的deactivated钩子
 export function deactivateChildComponent (vm: Component, direct?: boolean) {
   if (direct) {
     vm._directInactive = true
