@@ -210,6 +210,7 @@ export function createComponent (
 
   // return a placeholder vnode
   // 实例化VNode【返回组件在父组件渲染树中的占位符vnode】
+  // 传入了componentOptions参数，包含了propsData, listeners等
   const name = Ctor.options.name || tag
   const vnode = new VNode(
     `vue-component-${Ctor.cid}${name ? `-${name}` : ''}`,

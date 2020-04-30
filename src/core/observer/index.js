@@ -23,7 +23,7 @@ const arrayKeys = Object.getOwnPropertyNames(arrayMethods)
  * update computation.
  */
 export let shouldObserve: boolean = true
-
+// 切换开关：控制observe方法是否需要把当前值变成一个Observer对象
 export function toggleObserving (value: boolean) {
   shouldObserve = value
 }

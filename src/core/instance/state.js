@@ -35,7 +35,7 @@ const sharedPropertyDefinition = {
   set: noop
 }
 
-// 代理data属性到vm实例
+// 代理data/props属性到vm实例
 export function proxy (target: Object, sourceKey: string, key: string) {
   sharedPropertyDefinition.get = function proxyGetter () {
     return this[sourceKey][key]
@@ -63,7 +63,9 @@ export function initState (vm: Component) {
   }
 }
 
+// 初始化props
 function initProps (vm: Component, propsOptions: Object) {
+  // 获取从父组件传过来的propsData
   const propsData = vm.$options.propsData || {}
   const props = vm._props = {}
   // cache prop keys so that future props updates can iterate using Array
@@ -71,11 +73,14 @@ function initProps (vm: Component, propsOptions: Object) {
   const keys = vm.$options._propKeys = []
   const isRoot = !vm.$parent
   // root instance props should be converted
+  // 非根实例的props不被观测
   if (!isRoot) {
     toggleObserving(false)
   }
+  // 遍历
   for (const key in propsOptions) {
     keys.push(key)
+    // 校验传递的数据是否满足prop的定义规范
     const value = validateProp(key, propsOptions, propsData, vm)
     /* istanbul ignore else */
     if (process.env.NODE_ENV !== 'production') {
@@ -99,11 +104,13 @@ function initProps (vm: Component, propsOptions: Object) {
         }
       })
     } else {
+      // 把prop变成响应式
       defineReactive(props, key, value)
     }
     // static props are already proxied on the component's prototype
     // during Vue.extend(). We only need to proxy props defined at
     // instantiation here.
+    // 代理props【非根实例的代理发生在Vue.extend里面】
     if (!(key in vm)) {
       proxy(vm, `_props`, key)
     }

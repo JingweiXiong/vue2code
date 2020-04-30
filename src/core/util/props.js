@@ -18,6 +18,7 @@ type PropOptions = {
   validator: ?Function
 };
 
+// 校验props，最终返回prop的值
 export function validateProp (
   key: string,
   propOptions: Object,
@@ -27,7 +28,7 @@ export function validateProp (
   const prop = propOptions[key]
   const absent = !hasOwn(propsData, key)
   let value = propsData[key]
-  // boolean casting
+  // boolean casting：处理 Boolean 类型的数据
   const booleanIndex = getTypeIndex(Boolean, prop.type)
   if (booleanIndex > -1) {
     if (absent && !hasOwn(prop, 'default')) {
@@ -41,7 +42,7 @@ export function validateProp (
       }
     }
   }
-  // check default value
+  // check default value：处理默认数据
   if (value === undefined) {
     value = getPropDefaultValue(vm, prop, key)
     // since the default value is a fresh copy,
@@ -51,6 +52,7 @@ export function validateProp (
     observe(value)
     toggleObserving(prevShouldObserve)
   }
+  // prop 断言
   if (
     process.env.NODE_ENV !== 'production' &&
     // skip validation for weex recycle-list child component props
@@ -63,6 +65,7 @@ export function validateProp (
 
 /**
  * Get the default value of a prop.
+ * 获取prop的默认值
  */
 function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): any {
   // no default, return undefined
@@ -81,6 +84,9 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
   }
   // the raw prop value was also undefined from previous render,
   // return previous default value to avoid unnecessary watcher trigger
+  // 如果上一次组件渲染父组件传递的prop的值是undefined，则直接返回上一次的默认值vm._props[key]，
+  // 这样可以避免触发不必要的watcher的更新
+  // 没必要重复获取默认值
   if (vm && vm.$options.propsData &&
     vm.$options.propsData[key] === undefined &&
     vm._props[key] !== undefined
@@ -89,6 +95,7 @@ function getPropDefaultValue (vm: ?Component, prop: PropOptions, key: string): a
   }
   // call factory function for non-Function types
   // a value is Function if its prototype is function even across different execution context
+  // 判断是工厂函数的情况
   return typeof def === 'function' && getType(prop.type) !== 'Function'
     ? def.call(vm)
     : def

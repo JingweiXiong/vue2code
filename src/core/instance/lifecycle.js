@@ -263,6 +263,7 @@ export function updateChildComponent (
     for (let i = 0; i < propKeys.length; i++) {
       const key = propKeys[i]
       const propOptions: any = vm.$options.props // wtf flow?
+      // 更新prop数据
       props[key] = validateProp(key, propOptions, propsData, vm)
     }
     toggleObserving(true)

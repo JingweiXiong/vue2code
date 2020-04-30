@@ -274,6 +274,7 @@ export function validateComponentName (name: string) {
 /**
  * Ensure all props option syntax are normalized into the
  * Object-based format.
+ * 把传入的props规范化成对象格式
  */
 function normalizeProps (options: Object, vm: ?Component) {
   const props = options.props
@@ -379,6 +380,7 @@ export function mergeOptions (
     child = child.options
   }
 
+  // 规范化props
   normalizeProps(child, vm)
   normalizeInject(child, vm)
   normalizeDirectives(child)

@@ -33,13 +33,14 @@ export function initExtend (Vue: GlobalAPI) {
       validateComponentName(name)
     }
 
-    // vue子类继承于父类：设置其构造函数、合并配置
+    // vue子类继承于父类
     const Sub = function VueComponent (options) {
       this._init(options)
     }
     Sub.prototype = Object.create(Super.prototype)
     Sub.prototype.constructor = Sub
     Sub.cid = cid++
+    // 合并配置
     Sub.options = mergeOptions(
       Super.options,
       extendOptions
@@ -49,6 +50,7 @@ export function initExtend (Vue: GlobalAPI) {
     // For props and computed properties, we define the proxy getters on
     // the Vue instances at extension time, on the extended prototype. This
     // avoids Object.defineProperty calls for each instance created.
+    // 把props代理到构造器原型上，避免prop被重复代理在每个实例上
     if (Sub.options.props) {
       initProps(Sub)
     }
