@@ -8,21 +8,26 @@ import { fillParams } from './util/params'
 import { createRouteMap } from './create-route-map'
 import { normalizeLocation } from './util/location'
 
+// 路由匹配器的定义
 export type Matcher = {
   match: (raw: RawLocation, current?: Route, redirectedFrom?: Location) => Route;
   addRoutes: (routes: Array<RouteConfig>) => void;
 };
 
+// 创建路由匹配器，参数是路由配置和router实例
 export function createMatcher (
   routes: Array<RouteConfig>,
   router: VueRouter
 ): Matcher {
+  // 创建路由映射表：返回path列表、path到RouteRecord的映射、name到RouteRecord的映射
   const { pathList, pathMap, nameMap } = createRouteMap(routes)
 
+  // 动态添加路由配置【pathList, pathMap, nameMap是引用类型，动态添加后修改了它们】
   function addRoutes (routes) {
     createRouteMap(routes, pathList, pathMap, nameMap)
   }
 
+  // 匹配新路径：根据传入的raw和当前的路径currentRoute计算出一个新的路径并返回
   function match (
     raw: RawLocation,
     currentRoute?: Route,

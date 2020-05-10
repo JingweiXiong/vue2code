@@ -15,6 +15,7 @@ import { AbstractHistory } from './history/abstract'
 
 import type { Matcher } from './create-matcher'
 
+// 导出VueRouter类
 export default class VueRouter {
   static install: () => void;
   static version: string;
@@ -35,13 +36,18 @@ export default class VueRouter {
   constructor (options: RouterOptions = {}) {
     this.app = null
     this.apps = []
+    // 传入的路由配置
     this.options = options
+    // 几种全局的守卫函数
     this.beforeHooks = []
     this.resolveHooks = []
     this.afterHooks = []
+    // 创建路由匹配器
     this.matcher = createMatcher(options.routes || [], this)
 
+    // 路由创建的模式
     let mode = options.mode || 'hash'
+    // 判断是否需要从history模式回退到hash模式
     this.fallback = mode === 'history' && !supportsPushState && options.fallback !== false
     if (this.fallback) {
       mode = 'hash'
@@ -51,6 +57,7 @@ export default class VueRouter {
     }
     this.mode = mode
 
+    // 创建路由历史实例
     switch (mode) {
       case 'history':
         this.history = new HTML5History(this, options.base)
@@ -80,13 +87,14 @@ export default class VueRouter {
     return this.history && this.history.current
   }
 
+  // 初始化
   init (app: any /* Vue component instance */) {
     process.env.NODE_ENV !== 'production' && assert(
       install.installed,
       `not installed. Make sure to call \`Vue.use(VueRouter)\` ` +
       `before creating root instance.`
     )
-
+    // 存储vm实例
     this.apps.push(app)
 
     // set up app destroyed handler
@@ -113,6 +121,7 @@ export default class VueRouter {
     if (history instanceof HTML5History) {
       history.transitionTo(history.getCurrentLocation())
     } else if (history instanceof HashHistory) {
+      // 监听历史栈
       const setupHashListener = () => {
         history.setupListeners()
       }
@@ -254,6 +263,7 @@ function createHref (base: string, fullPath: string, mode) {
   return base ? cleanPath(base + '/' + path) : path
 }
 
+// 给Vue调用的install方法
 VueRouter.install = install
 VueRouter.version = '__VERSION__'
 

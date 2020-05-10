@@ -5,6 +5,7 @@ import { saveScrollPosition } from './scroll'
 import { genStateKey, setStateKey, getStateKey } from './state-key'
 import { extend } from './misc'
 
+// 检测是否支持pushState
 export const supportsPushState =
   inBrowser &&
   (function () {
@@ -22,6 +23,7 @@ export const supportsPushState =
     return window.history && 'pushState' in window.history
   })()
 
+// 调用浏览器原生的history.pushState
 export function pushState (url?: string, replace?: boolean) {
   saveScrollPosition()
   // try...catch the pushState call to get around Safari

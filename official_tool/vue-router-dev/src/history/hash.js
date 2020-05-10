@@ -7,6 +7,7 @@ import { getLocation } from './html5'
 import { setupScroll, handleScroll } from '../util/scroll'
 import { pushState, replaceState, supportsPushState } from '../util/push-state'
 
+// hash模式的路由历史类
 export class HashHistory extends History {
   constructor (router: Router, base: ?string, fallback: boolean) {
     super(router, base)
@@ -19,6 +20,7 @@ export class HashHistory extends History {
 
   // this is delayed until the app mounts
   // to avoid the hashchange listener being fired too early
+  // 设置监听器，监听历史栈的变化【popstate或hashchange事件】
   setupListeners () {
     const router = this.router
     const expectScroll = router.options.scrollBehavior
@@ -47,11 +49,13 @@ export class HashHistory extends History {
     )
   }
 
+  // push方法
   push (location: RawLocation, onComplete?: Function, onAbort?: Function) {
     const { current: fromRoute } = this
     this.transitionTo(
       location,
       route => {
+        // 把url推到栈中
         pushHash(route.fullPath)
         handleScroll(this.router, route, fromRoute, false)
         onComplete && onComplete(route)
@@ -131,6 +135,7 @@ export function getHash (): string {
   return href
 }
 
+// 获取完整的url
 function getUrl (path) {
   const href = window.location.href
   const i = href.indexOf('#')
@@ -138,6 +143,7 @@ function getUrl (path) {
   return `${base}#${path}`
 }
 
+// 把url变化推到栈中
 function pushHash (path) {
   if (supportsPushState) {
     pushState(getUrl(path))

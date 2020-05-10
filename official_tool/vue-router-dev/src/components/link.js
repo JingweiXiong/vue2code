@@ -83,6 +83,7 @@ export default {
         on[e] = handler
       })
     } else {
+      // 添加click事件
       on[this.event] = handler
     }
 
@@ -139,6 +140,7 @@ export default {
             // on[event] is always a function
             aData.on[event].push(on[event])
           } else {
+            // 添加事件
             aData.on[event] = handler
           }
         }

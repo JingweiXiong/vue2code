@@ -12,6 +12,7 @@ export default {
   },
   render (_, { props, children, parent, data }) {
     // used by devtools to display a router-view badge
+    // 标记
     data.routerView = true
 
     // directly use parent context's createElement() function
@@ -27,6 +28,7 @@ export default {
     let inactive = false
     while (parent && parent._routerRoot !== parent) {
       const vnodeData = parent.$vnode ? parent.$vnode.data : {}
+      // 如果碰到了父节点也是 <router-view>的时候，说明有嵌套
       if (vnodeData.routerView) {
         depth++
       }
@@ -54,10 +56,12 @@ export default {
       }
     }
 
+    // 根据depth深度去获取matched及对应的组件
     const matched = route.matched[depth]
     const component = matched && matched.components[name]
 
     // render empty node if no matched route or no config component
+    // 没匹配到对应的路由就渲染一个注释节点
     if (!matched || !component) {
       cache[name] = null
       return h()
@@ -106,6 +110,7 @@ export default {
       fillPropsinData(component, data, route, configProps)
     }
 
+    // 渲染路由对应的组件
     return h(component, data, children)
   }
 }

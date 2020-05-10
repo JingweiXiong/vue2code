@@ -77,6 +77,7 @@ declare type RouteRecord = {
   props: boolean | Object | Function | Dictionary<boolean | Object | Function>;
 }
 
+// Location是对 url 的结构化描述
 declare type Location = {
   _normalized?: boolean;
   name?: string;
@@ -90,6 +91,7 @@ declare type Location = {
 
 declare type RawLocation = string | Location
 
+// Route是路由中的线路，比Location多了matched信息
 declare type Route = {
   path: string;
   name: ?string;

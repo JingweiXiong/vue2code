@@ -13,6 +13,7 @@ import {
 } from '../util/resolve-components'
 import { NavigationDuplicated } from './errors'
 
+// 路由历史基类
 export class History {
   router: Router
   base: string
@@ -62,11 +63,13 @@ export class History {
     this.errorCbs.push(errorCb)
   }
 
+  // 路径切换
   transitionTo (
     location: RawLocation,
     onComplete?: Function,
     onAbort?: Function
   ) {
+    // 计算新路径
     const route = this.router.match(location, this.current)
     this.confirmTransition(
       route,
@@ -125,30 +128,33 @@ export class History {
       return abort(new NavigationDuplicated(route))
     }
 
+    // 解析出3个数组
     const { updated, deactivated, activated } = resolveQueue(
       this.current.matched,
       route.matched
     )
-
+    // 构造一个队列做导航解析流程
     const queue: Array<?NavigationGuard> = [].concat(
       // in-component leave guards
-      extractLeaveGuards(deactivated),
+      extractLeaveGuards(deactivated), // 在失活的组件里调用离开守卫【组件里定义的beforeRouteLeave】
       // global before hooks
-      this.router.beforeHooks,
+      this.router.beforeHooks, // 调用全局的beforeEach守卫
       // in-component update hooks
-      extractUpdateHooks(updated),
+      extractUpdateHooks(updated), // 在重用的组件里调用beforeRouteUpdate守卫【重用的组件中定义的beforeRouteUpdate】
       // in-config enter guards
-      activated.map(m => m.beforeEnter),
+      activated.map(m => m.beforeEnter), // 在激活的路由配置里调用beforeEnter
       // async components
-      resolveAsyncComponents(activated)
+      resolveAsyncComponents(activated) // 解析异步路由组件
     )
 
     this.pending = route
+    // 定义迭代器函数
     const iterator = (hook: NavigationGuard, next) => {
       if (this.pending !== route) {
         return abort()
       }
       try {
+        // 执行导航守卫函数
         hook(route, current, (to: any) => {
           if (to === false || isError(to)) {
             // next(false) -> abort navigation, ensure current URL
@@ -176,18 +182,22 @@ export class History {
       }
     }
 
+    // 执行队列
     runQueue(queue, iterator, () => {
       const postEnterCbs = []
       const isValid = () => this.current === route
       // wait until async components are resolved before
       // extracting in-component enter guards
+      // 在被激活的组件里调用 beforeRouteEnter【这里拿不到组件实例，可以传一个回调给next】
       const enterGuards = extractEnterGuards(activated, postEnterCbs, isValid)
+      // 调用全局的 beforeResolve 守卫
       const queue = enterGuards.concat(this.router.resolveHooks)
       runQueue(queue, iterator, () => {
         if (this.pending !== route) {
           return abort()
         }
         this.pending = null
+        // 调用全局的 afterEach 钩子
         onComplete(route)
         if (this.router.app) {
           this.router.app.$nextTick(() => {
