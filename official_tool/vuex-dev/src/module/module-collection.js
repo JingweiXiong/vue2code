@@ -1,7 +1,9 @@
 import Module from './module'
 import { assert, forEachValue } from '../util'
 
+// 模块集合【树形结构】
 export default class ModuleCollection {
+  // 传入原始的根模块配置
   constructor (rawRootModule) {
     // register root module (Vuex.Store options)
     this.register([], rawRootModule, false)
@@ -13,6 +15,8 @@ export default class ModuleCollection {
     }, this.root)
   }
 
+  // 根据路径数组获取命名空间，返回类似aModule/bModule
+  // 如果某个模块没有设置namespaced，则对应的命名空间是''
   getNamespace (path) {
     let module = this.root
     return path.reduce((namespace, key) => {
@@ -25,6 +29,7 @@ export default class ModuleCollection {
     update([], this.root, rawRootModule)
   }
 
+  // 递归注册模块，path是路径、rawModule是定义模块的原始配置、runtime表示是否是一个运行时创建的模块
   register (path, rawModule, runtime = true) {
     if (process.env.NODE_ENV !== 'production') {
       assertRawModule(path, rawModule)
@@ -32,13 +37,15 @@ export default class ModuleCollection {
 
     const newModule = new Module(rawModule, runtime)
     if (path.length === 0) {
+      // 表示是根模块
       this.root = newModule
     } else {
+      // 把子模块添加到父模块中
       const parent = this.get(path.slice(0, -1))
       parent.addChild(path[path.length - 1], newModule)
     }
 
-    // register nested modules
+    // register nested modules：继续递归注册嵌套的模块，key被传到path数组里
     if (rawModule.modules) {
       forEachValue(rawModule.modules, (rawChildModule, key) => {
         this.register(path.concat(key), rawChildModule, runtime)

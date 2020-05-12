@@ -18,7 +18,7 @@ export default function (Vue) {
   /**
    * Vuex init hook, injected into each instances init hooks list.
    */
-
+  // 在beforeCreate钩子注入$store实例，如果是子组件则一层一层从父组件中获取
   function vuexInit () {
     const options = this.$options
     // store injection

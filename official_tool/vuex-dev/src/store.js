@@ -31,6 +31,7 @@ export class Store {
     this._actionSubscribers = []
     this._mutations = Object.create(null)
     this._wrappedGetters = Object.create(null)
+    // 初始化模块
     this._modules = new ModuleCollection(options)
     this._modulesNamespaceMap = Object.create(null)
     this._subscribers = []
@@ -55,10 +56,12 @@ export class Store {
     // init root module.
     // this also recursively registers all sub-modules
     // and collects all module getters inside this._wrappedGetters
+    // 安装模块
     installModule(this, state, [], this._modules.root)
 
     // initialize the store vm, which is responsible for the reactivity
     // (also registers _wrappedGetters as computed properties)
+    // 初始化 store._vm
     resetStoreVM(this, state)
 
     // apply plugins
@@ -80,6 +83,7 @@ export class Store {
     }
   }
 
+  // commit方法
   commit (_type, _payload, _options) {
     // check object-style commit
     const {
@@ -117,6 +121,7 @@ export class Store {
     }
   }
 
+  // dispatch方法
   dispatch (_type, _payload) {
     // check object-style dispatch
     const {
@@ -145,10 +150,12 @@ export class Store {
       }
     }
 
+    // 如果是多个处理函数就使用Promise.all包装
     const result = entry.length > 1
       ? Promise.all(entry.map(handler => handler(payload)))
       : entry[0](payload)
 
+    // 返回result.then的promise对象
     return result.then(res => {
       try {
         this._actionSubscribers
@@ -252,6 +259,7 @@ function resetStore (store, hot) {
   resetStoreVM(store, state, hot)
 }
 
+// 初始化 store._vm
 function resetStoreVM (store, state, hot) {
   const oldVm = store._vm
 
@@ -261,12 +269,14 @@ function resetStoreVM (store, state, hot) {
   store._makeLocalGettersCache = Object.create(null)
   const wrappedGetters = store._wrappedGetters
   const computed = {}
+  // 遍历添加到store.getters和computed中
   forEachValue(wrappedGetters, (fn, key) => {
     // use computed to leverage its lazy-caching mechanism
     // direct inline function use will lead to closure preserving oldVm.
     // using partial to return function with only arguments preserved in closure environment.
     computed[key] = partial(fn, store)
     Object.defineProperty(store.getters, key, {
+      // 访问store.getters[key]就是访问store._vm.computed[key]
       get: () => store._vm[key],
       enumerable: true // for local getters
     })
@@ -277,15 +287,19 @@ function resetStoreVM (store, state, hot) {
   // some funky global mixins
   const silent = Vue.config.silent
   Vue.config.silent = true
+  // 实例化vue实例存储状态
   store._vm = new Vue({
     data: {
-      $$state: state
+      $$state: state // 访问store.state就是访问store._vm.data.$$state
     },
+    // 当执行computed[key]对应的函数的时候，会执行rawGetter(local.state,...) 方法，
+    // 就会访问到store.state，进而访问到store._vm._data.$$state，这样就建立了一个依赖关系
     computed
   })
   Vue.config.silent = silent
 
   // enable strict mode for new vm
+  // 严格模式：确保改变state的唯一途径就是显式地提交mutation
   if (store.strict) {
     enableStrictMode(store)
   }
@@ -302,11 +316,13 @@ function resetStoreVM (store, state, hot) {
   }
 }
 
+// 安装模块：对模块中的 state、getters、mutations、actions做初始化工作
 function installModule (store, rootState, path, module, hot) {
   const isRoot = !path.length
+  // 获取命名空间
   const namespace = store._modules.getNamespace(path)
 
-  // register in namespace map
+  // register in namespace map：以命名空间为key保存模块
   if (module.namespaced) {
     if (store._modulesNamespaceMap[namespace] && process.env.NODE_ENV !== 'production') {
       console.error(`[vuex] duplicate namespace ${namespace} for the namespaced module ${path.join('/')}`)
@@ -314,7 +330,7 @@ function installModule (store, rootState, path, module, hot) {
     store._modulesNamespaceMap[namespace] = module
   }
 
-  // set state
+  // set state：按照路径设置模块的state，如store.state = {aModule: {}, bModule: {}}
   if (!isRoot && !hot) {
     const parentState = getNestedState(rootState, path.slice(0, -1))
     const moduleName = path[path.length - 1]
@@ -330,8 +346,11 @@ function installModule (store, rootState, path, module, hot) {
     })
   }
 
+  // 构造局部上下文环境local：local的dispatch, commit, getters和state都是局部的
+  // 如果没有namespaced，就使用根的
   const local = module.context = makeLocalContext(store, namespace, path)
 
+  // 注册模块中定义的mutations、actions、getters到store的_mutations/_actions/_wrappedGetters
   module.forEachMutation((mutation, key) => {
     const namespacedType = namespace + key
     registerMutation(store, namespacedType, mutation, local)
@@ -348,6 +367,7 @@ function installModule (store, rootState, path, module, hot) {
     registerGetter(store, namespacedType, getter, local)
   })
 
+  // 遍历递归继续安装模块
   module.forEachChild((child, key) => {
     installModule(store, rootState, path.concat(key), child, hot)
   })
@@ -360,7 +380,9 @@ function installModule (store, rootState, path, module, hot) {
 function makeLocalContext (store, namespace, path) {
   const noNamespace = namespace === ''
 
+  // 最终返回的局部上下文环境
   const local = {
+    // type加上命名空间，比如aModule/submitData
     dispatch: noNamespace ? store.dispatch : (_type, _payload, _options) => {
       const args = unifyObjectStyle(_type, _payload, _options)
       const { payload, options } = args
@@ -377,6 +399,7 @@ function makeLocalContext (store, namespace, path) {
       return store.dispatch(type, payload)
     },
 
+    // type加上命名空间，比如aModule/submitData
     commit: noNamespace ? store.commit : (_type, _payload, _options) => {
       const args = unifyObjectStyle(_type, _payload, _options)
       const { payload, options } = args
@@ -397,11 +420,14 @@ function makeLocalContext (store, namespace, path) {
   // getters and state object must be gotten lazily
   // because they will be changed by vm update
   Object.defineProperties(local, {
+    // 局部的getters：访问局部的getters代理到全局上面找
+    // 例如访问aModule.kk就找store.getters[aModule/kk]
     getters: {
       get: noNamespace
         ? () => store.getters
         : () => makeLocalGetters(store, namespace)
     },
+    // 局部的state：从根state开始根据key往下找，如store.state.aModule.key
     state: {
       get: () => getNestedState(store.state, path)
     }
@@ -410,10 +436,12 @@ function makeLocalContext (store, namespace, path) {
   return local
 }
 
+// 构造局部的getters
 function makeLocalGetters (store, namespace) {
   if (!store._makeLocalGettersCache[namespace]) {
     const gettersProxy = {}
     const splitPos = namespace.length
+    // 遍历store.getters下，例如访问aModule.kk就找store.getters[aModule/kk]
     Object.keys(store.getters).forEach(type => {
       // skip if the target getter is not match this namespace
       if (type.slice(0, splitPos) !== namespace) return
@@ -435,6 +463,7 @@ function makeLocalGetters (store, namespace) {
   return store._makeLocalGettersCache[namespace]
 }
 
+// 注册mutation
 function registerMutation (store, type, handler, local) {
   const entry = store._mutations[type] || (store._mutations[type] = [])
   entry.push(function wrappedMutationHandler (payload) {
@@ -442,6 +471,7 @@ function registerMutation (store, type, handler, local) {
   })
 }
 
+// 注册action
 function registerAction (store, type, handler, local) {
   const entry = store._actions[type] || (store._actions[type] = [])
   entry.push(function wrappedActionHandler (payload) {
@@ -453,6 +483,7 @@ function registerAction (store, type, handler, local) {
       rootGetters: store.getters,
       rootState: store.state
     }, payload)
+    // 如果处理函数返回值不是promise对象，就使用Promise.resolve进行包装
     if (!isPromise(res)) {
       res = Promise.resolve(res)
     }
@@ -466,7 +497,7 @@ function registerAction (store, type, handler, local) {
     }
   })
 }
-
+// 注册getters
 function registerGetter (store, type, rawGetter, local) {
   if (store._wrappedGetters[type]) {
     if (process.env.NODE_ENV !== 'production') {
@@ -474,6 +505,7 @@ function registerGetter (store, type, rawGetter, local) {
     }
     return
   }
+  // 执行getter的函数时返回四个参数：局部和根的state/getters
   store._wrappedGetters[type] = function wrappedGetter (store) {
     return rawGetter(
       local.state, // local state
@@ -510,6 +542,7 @@ function unifyObjectStyle (type, payload, options) {
   return { type, payload, options }
 }
 
+// 安装方法
 export function install (_Vue) {
   if (Vue && _Vue === Vue) {
     if (process.env.NODE_ENV !== 'production') {
